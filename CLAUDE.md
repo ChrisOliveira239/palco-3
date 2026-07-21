@@ -47,12 +47,10 @@ Mais do que um "site de eventos", o objetivo é fortalecer a cena cultural local
 
 ## Estrutura do Repositório (monorepo)
 
-> ⚠️ Ajustar esta seção para refletir a estrutura real do repositório já existente.
-
 ```
 /
-├── backend/          # API Laravel
-├── frontend/          # React (PWA)
+├── backend/          # API Laravel (instalado — Laravel 12, MySQL)
+├── frontend/          # React (PWA) — ainda não iniciado
 ├── mobile/            # React Native (futuro, ainda não iniciado)
 ├── docs/              # Documentação, specs, diagramas
 └── CLAUDE.md
@@ -122,11 +120,18 @@ Antes de criar qualquer componente novo:
 - **Frontend**: Jest — cobrir componentes com lógica (formulários, listas com filtro, fluxo de compra) e funções utilitárias.
 - Toda funcionalidade nova relevante (não trivial) deve vir acompanhada de teste correspondente, mesmo que básico.
 
+### Nomenclatura de colunas (tabelas)
+
+- Colunas de negócio de cada tabela recebem prefixo de 3 letras derivado do **nome da tabela SQL** (inglês, como escrito na migration) — ex: `users` → `use_`, `categories` → `cat_`, `venues` → `ven_`, `skills` → `ski_`.
+- Se duas tabelas gerarem o mesmo prefixo de 3 letras (ex: futuramente `events`, `event_sessions`, `event_media` todas começariam com `eve`), ajustar uma letra pra manter unicidade (ex: `eve`, `evs`, `evm`) — decidir a variação no momento de criar aquela migration e registrar aqui se virar padrão recorrente.
+- **Não prefixar**: `id`, `created_at`/`updated_at`, chaves estrangeiras (`*_id`, seguem o padrão Eloquent `{tabela_singular}_id`), e colunas reservadas do Laravel Auth (`email`, `password`, `remember_token`, `email_verified_at`) — evita quebrar `UserProvider`, notificações, reset de senha etc.
+- Exemplo: tabela `users`, coluna de negócio `name` → `use_name`; `bio` → `use_bio`.
+
 ### Outras convenções (a definir conforme o projeto avança)
 
 - [ ] Padrão de nomenclatura de branches
 - [ ] Padrão de commits (ex: Conventional Commits)
-- [ ] Comandos de setup/build/test do backend
+- [x] Comandos de setup/build/test do backend — `cd backend && composer install`, `php artisan migrate`, `php artisan test`
 - [ ] Comandos de setup/build/test do frontend
 - [ ] Linter/formatter usados (ex: Pint no Laravel, ESLint/Prettier no React)
 
@@ -148,9 +153,9 @@ Quando o usuário pedir uma explicação (ex: "explica essa decisão", "por que 
 
 | Etapa | Escopo | Status |
 |---|---|---|
-| 0 | Setup do projeto (estrutura de pastas, Laravel + React instalados, banco configurado) | ✅ já existente (repositório inicial) |
+| 0 | Setup do projeto (estrutura de pastas, Laravel + React instalados, banco configurado) | ✅ backend (Laravel 12 + MySQL) instalado em 2026-07-21; frontend ainda pendente |
 | 1 | Modelagem do banco de dados (entidades, relacionamentos, ER, decisões de schema) | ✅ concluída — ver `docs/database-model.md` |
-| 2 | Migrations Laravel + seeders básicos | 🔜 próxima etapa |
+| 2 | Migrations Laravel + seeders básicos | 🔄 em andamento — grupo 1 pronto (`users`, `categories`, `venues`, `skills`); grupos 2-8 e seeders pendentes |
 | 3 | Models Eloquent + relacionamentos + Factories | Pendente |
 | 4 | Autenticação e autorização (usuário, papéis: usuário/artista/grupo/admin) | Pendente |
 | 5 | API REST — módulo de Usuários e Perfis (artista/grupo) | Pendente |
@@ -172,9 +177,11 @@ Quando o usuário pedir uma explicação (ex: "explica essa decisão", "por que 
 
 ## Status atual do projeto
 
-**Fase atual:** Etapa 2 — Migrations Laravel.
+**Fase atual:** Etapa 2 — Migrations Laravel (grupo 1 concluído em 2026-07-21).
 
 Modelagem do banco de dados concluída e documentada em `docs/database-model.md` (inclui decisões registradas sobre patrocinador pessoa/empresa, comentários em avaliações, QR Code por ingresso e busca por raio de distância).
+
+Backend Laravel 12 instalado em `backend/`, conectado a MySQL local (banco `palco-3`). Migrations criadas e rodadas: `users` (estendida com campos do domínio), `categories`, `venues`, `skills` — seguindo a convenção de prefixo de 3 letras por tabela (ver "Nomenclatura de colunas"). Próxima sessão: migrations do grupo 2 (`artist_profiles`, `groups`, `group_members`, `artist_profile_skill`).
 
 ## Como o Claude deve ajudar neste projeto
 
