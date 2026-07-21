@@ -36,6 +36,10 @@ Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de
 | bio | text | nullable |
 | capa_url | string | nullable |
 | verificado | boolean | default false |
+| drt | string | nullable — registro profissional de artista, opcional; quando preenchido, exibe selo de verificação no perfil (implementação de frontend futura) |
+| telefone | string | nullable — contato público, independente do email de login |
+| email | string | nullable — idem |
+| site | string | nullable |
 
 ### `groups`
 | Campo | Tipo | Notas |
@@ -45,7 +49,11 @@ Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de
 | descricao | text | nullable |
 | avatar_url | string | nullable |
 | capa_url | string | nullable |
-| criado_por | bigint FK → users | |
+| cnpj | string | nullable — grupo pode ser informal (sem CNPJ) ou pessoa jurídica |
+| telefone | string | nullable — contato público do grupo |
+| email | string | nullable — idem |
+| site | string | nullable |
+| user_id | bigint FK → users | dono/criador do grupo (nomeado `user_id` para seguir padrão Eloquent `{tabela_singular}_id`) |
 
 ### `group_members` (pivot)
 | Campo | Tipo | Notas |

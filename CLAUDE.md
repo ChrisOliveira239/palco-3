@@ -123,7 +123,7 @@ Antes de criar qualquer componente novo:
 ### Nomenclatura de colunas (tabelas)
 
 - Colunas de negócio de cada tabela recebem prefixo de 3 letras derivado do **nome da tabela SQL** (inglês, como escrito na migration) — ex: `users` → `use_`, `categories` → `cat_`, `venues` → `ven_`, `skills` → `ski_`.
-- Se duas tabelas gerarem o mesmo prefixo de 3 letras (ex: futuramente `events`, `event_sessions`, `event_media` todas começariam com `eve`), ajustar uma letra pra manter unicidade (ex: `eve`, `evs`, `evm`) — decidir a variação no momento de criar aquela migration e registrar aqui se virar padrão recorrente.
+- Se duas tabelas gerarem o mesmo prefixo de 3 letras, ajustar uma letra pra manter unicidade — decidir a variação no momento de criar aquela migration e registrar aqui. Já aconteceu com `groups` → `gro_` e `group_members` → `grm_`; vai acontecer de novo com o cluster `events`/`event_sessions`/`event_media` (ex: `eve`, `evs`, `evm`).
 - **Não prefixar**: `id`, `created_at`/`updated_at`, chaves estrangeiras (`*_id`, seguem o padrão Eloquent `{tabela_singular}_id`), e colunas reservadas do Laravel Auth (`email`, `password`, `remember_token`, `email_verified_at`) — evita quebrar `UserProvider`, notificações, reset de senha etc.
 - Exemplo: tabela `users`, coluna de negócio `name` → `use_name`; `bio` → `use_bio`.
 
@@ -155,7 +155,7 @@ Quando o usuário pedir uma explicação (ex: "explica essa decisão", "por que 
 |---|---|---|
 | 0 | Setup do projeto (estrutura de pastas, Laravel + React instalados, banco configurado) | ✅ backend (Laravel 12 + MySQL) instalado em 2026-07-21; frontend ainda pendente |
 | 1 | Modelagem do banco de dados (entidades, relacionamentos, ER, decisões de schema) | ✅ concluída — ver `docs/database-model.md` |
-| 2 | Migrations Laravel + seeders básicos | 🔄 em andamento — grupo 1 pronto (`users`, `categories`, `venues`, `skills`); grupos 2-8 e seeders pendentes |
+| 2 | Migrations Laravel + seeders básicos | 🔄 em andamento — grupos 1 e 2 prontos (`users`, `categories`, `venues`, `skills`, `artist_profiles`, `groups`, `group_members`, `artist_profile_skill`); grupos 3-8 e seeders pendentes |
 | 3 | Models Eloquent + relacionamentos + Factories | Pendente |
 | 4 | Autenticação e autorização (usuário, papéis: usuário/artista/grupo/admin) | Pendente |
 | 5 | API REST — módulo de Usuários e Perfis (artista/grupo) | Pendente |
@@ -177,11 +177,11 @@ Quando o usuário pedir uma explicação (ex: "explica essa decisão", "por que 
 
 ## Status atual do projeto
 
-**Fase atual:** Etapa 2 — Migrations Laravel (grupo 1 concluído em 2026-07-21).
+**Fase atual:** Etapa 2 — Migrations Laravel (grupos 1 e 2 concluídos em 2026-07-21).
 
-Modelagem do banco de dados concluída e documentada em `docs/database-model.md` (inclui decisões registradas sobre patrocinador pessoa/empresa, comentários em avaliações, QR Code por ingresso e busca por raio de distância).
+Modelagem do banco de dados concluída e documentada em `docs/database-model.md` (inclui decisões registradas sobre patrocinador pessoa/empresa, comentários em avaliações, QR Code por ingresso, busca por raio de distância, DRT/CNPJ e contato de artista/grupo).
 
-Backend Laravel 12 instalado em `backend/`, conectado a MySQL local (banco `palco-3`). Migrations criadas e rodadas: `users` (estendida com campos do domínio), `categories`, `venues`, `skills` — seguindo a convenção de prefixo de 3 letras por tabela (ver "Nomenclatura de colunas"). Próxima sessão: migrations do grupo 2 (`artist_profiles`, `groups`, `group_members`, `artist_profile_skill`).
+Backend Laravel 12 instalado em `backend/`, conectado a MySQL local (banco `palco-3`). Migrations criadas e rodadas: `users` (estendida), `categories`, `venues`, `skills` (grupo 1) + `artist_profiles`, `groups`, `group_members`, `artist_profile_skill` (grupo 2) — seguindo a convenção de prefixo de 3 letras por tabela (ver "Nomenclatura de colunas"), incluindo o ajuste de colisão `gro_`/`grm_`. Próxima sessão: migrations do grupo 3.
 
 ## Como o Claude deve ajudar neste projeto
 
