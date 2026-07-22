@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('skills', function (Blueprint $table) {
+        Schema::create('event_media', function (Blueprint $table) {
             $table->id();
-            $table->string('ski_nome');
-            $table->boolean('ski_active')->default(true);
+            $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
+            $table->enum('evm_tipo', ['foto', 'video']);
+            $table->string('evm_url');
+            $table->integer('evm_ordem')->default(0);
+            $table->boolean('evm_active')->default(true);
             $table->timestamps();
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('skills');
+        Schema::dropIfExists('event_media');
     }
 };

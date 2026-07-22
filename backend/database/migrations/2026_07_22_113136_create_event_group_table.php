@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('skills', function (Blueprint $table) {
-            $table->id();
-            $table->string('ski_nome');
-            $table->boolean('ski_active')->default(true);
-            $table->timestamps();
+        Schema::create('event_group', function (Blueprint $table) {
+            $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
+            $table->foreignId('group_id')->constrained('groups')->cascadeOnDelete();
+
+            $table->primary(['event_id', 'group_id']);
         });
     }
 
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('skills');
+        Schema::dropIfExists('event_group');
     }
 };

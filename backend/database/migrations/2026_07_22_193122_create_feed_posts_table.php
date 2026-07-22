@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('skills', function (Blueprint $table) {
+        Schema::create('feed_posts', function (Blueprint $table) {
             $table->id();
-            $table->string('ski_nome');
-            $table->boolean('ski_active')->default(true);
+            $table->morphs('autor');
+            $table->enum('fee_tipo', ['atualizacao', 'foto', 'video', 'evento']);
+            $table->text('fee_conteudo')->nullable();
+            $table->string('fee_midia_url')->nullable();
+            $table->boolean('fee_active')->default(true);
             $table->timestamps();
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('skills');
+        Schema::dropIfExists('feed_posts');
     }
 };
