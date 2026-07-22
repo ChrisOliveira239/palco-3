@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('cat_nome');
             $table->string('cat_slug')->unique();
             $table->string('cat_icone')->nullable();
+            $table->boolean('cat_active')->default(true);
             $table->timestamps();
         });
     }

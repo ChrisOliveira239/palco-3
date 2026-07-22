@@ -24,6 +24,7 @@ Convenções: nomes de tabela em `snake_case`, plural. Chaves primárias `id` (b
 | is_admin | boolean | default false — administrador é um papel do usuário, não entidade separada |
 | tipo_conta | enum(pessoa, empresa) | default pessoa — permite empresa patrocinadora sem criar entidade `companies` separada (decisão provisória, revisar se demanda de empresas crescer) |
 | email_verified_at | timestamp | nullable |
+| active | boolean | default true — soft delete manual (flag, não `deleted_at` do Laravel) |
 
 ### `artist_profiles`
 Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de artista).
@@ -40,6 +41,7 @@ Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de
 | telefone | string | nullable — contato público, independente do email de login |
 | email | string | nullable — idem |
 | site | string | nullable |
+| active | boolean | default true — soft delete manual |
 
 ### `groups`
 | Campo | Tipo | Notas |
@@ -54,6 +56,7 @@ Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de
 | email | string | nullable — idem |
 | site | string | nullable |
 | user_id | bigint FK → users | dono/criador do grupo (nomeado `user_id` para seguir padrão Eloquent `{tabela_singular}_id`) |
+| active | boolean | default true — soft delete manual |
 
 ### `group_members` (pivot)
 | Campo | Tipo | Notas |
@@ -63,15 +66,20 @@ Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de
 | papel | enum(admin, membro) | default membro |
 | created_at | timestamp | |
 
+Sem `active`: desfazer a ligação (membro saiu do grupo) é exclusão de verdade, não soft delete.
+
 ### `skills` (competências)
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
 | nome | string | ex: guitarrista, iluminador, fotógrafo |
+| active | boolean | default true — soft delete manual |
 
 ### `artist_profile_skill` (pivot N:N)
 | artist_profile_id | bigint FK | |
 | skill_id | bigint FK | |
+
+Sem `active`: pivot N:N puro, remoção de competência é exclusão de verdade.
 
 ---
 
@@ -82,6 +90,7 @@ Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de
 | nome | string |
 | slug | string unique |
 | icone | string nullable |
+| active | boolean default true — soft delete manual |
 
 ### `venues` (locais)
 | id | bigint PK |
@@ -91,6 +100,7 @@ Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de
 | estado | string |
 | latitude | decimal(10,7) |
 | longitude | decimal(10,7) |
+| active | boolean default true — soft delete manual |
 
 ### `events`
 | Campo | Tipo | Notas |
@@ -98,38 +108,45 @@ Perfil artístico opcional de um usuário (1 usuário → no máximo 1 perfil de
 | id | bigint PK | |
 | titulo | string | |
 | descricao | text | |
-| category_id | bigint FK → categories | |
-| organizador_type | string | polimórfico: `App\Models\User`, `ArtistProfile` ou `Group` |
-| organizador_id | bigint | |
-| status | enum(rascunho, pendente, aprovado, rejeitado, publicado) | fluxo de aprovação do admin |
+| category_id | bigint FK → categories | `restrictOnDelete` — categoria em uso não pode ser apagada |
+| organizador_type / organizador_id | string / bigint | polimórfico (`$table->morphs('organizador')`): `App\Models\User`, `ArtistProfile` ou `Group`; sem prefixo, tratado como equivalente a FK |
+| status | enum(rascunho, pendente, aprovado, rejeitado, publicado) | default rascunho — fluxo de aprovação do admin |
 | gratuito | boolean | default false |
+| cartaz_url | string | nullable — URL do cartaz/flyer do evento |
 | links_externos | json | nullable — links de venda externa, redes sociais |
-| aprovado_por | bigint FK → users | nullable, admin que aprovou |
+| aprovado_por_id | bigint FK → users | nullable, `nullOnDelete` — admin que aprovou (renomeado de `aprovado_por` pra terminar em `_id` e ficar isento de prefixo) |
 | aprovado_em | timestamp | nullable |
+| active | boolean | default true — soft delete manual |
 
 ### `event_sessions` (sessões: data + local)
 Resolve o caso de 1 evento com múltiplas datas/locais.
 
 | id | bigint PK |
-| event_id | bigint FK → events |
-| venue_id | bigint FK → venues |
-| data_inicio | datetime |
-| data_fim | datetime nullable |
+| event_id | bigint FK → events, `cascadeOnDelete` |
+| venue_id | bigint FK → venues, `restrictOnDelete` |
+| data_inicio | datetime — inclui hora |
+| data_fim | datetime nullable — inclui hora |
+| active | boolean default true — soft delete manual |
 
 ### `event_artist` (pivot N:N — artistas participantes)
 | event_id | bigint FK |
 | artist_profile_id | bigint FK |
 
+Sem `active`: remover artista do evento é exclusão de verdade.
+
 ### `event_group` (pivot N:N — grupos participantes)
 | event_id | bigint FK |
 | group_id | bigint FK |
 
+Sem `active`: remover grupo do evento é exclusão de verdade.
+
 ### `event_media` (galeria)
 | id | bigint PK |
-| event_id | bigint FK → events |
+| event_id | bigint FK → events, `cascadeOnDelete` |
 | tipo | enum(foto, video) |
 | url | string |
 | ordem | integer default 0 |
+| active | boolean default true — soft delete manual |
 
 ### `event_reviews` (avaliações)
 | id | bigint PK |
@@ -277,6 +294,15 @@ Permite que cada organizador defina quais tipos de apoio aceita.
 | Comentários em eventos | Coluna `comentario` já criada em `event_reviews` | Feature de UI pode vir depois; schema já preparado |
 | QR Code | Um QR por `ticket` (ingresso individual), não por `ticket_type` | Necessário para controle de entrada único e lista de presença |
 | Busca por raio de distância | `latitude`/`longitude` decimal + cálculo de distância em query (Haversine) | Suficiente para o volume inicial; revisar para `POINT`/`SPATIAL INDEX` se o volume de eventos crescer muito |
+
+## Decisões registradas (2026-07-22)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| FK do aprovador de evento | `aprovado_por` (nome do doc) → `aprovado_por_id` na migration | Termina em `_id`, fica isento do prefixo `eve_` (mesma regra usada em `groups.user_id` no grupo 2), mas mantém nome semântico claro |
+| Par polimórfico organizador | `organizador_type`/`organizador_id` sem prefixo, via `$table->morphs('organizador')` | Tratado como equivalente a FK (mesma exceção do `*_id`), sem customizar nome de relação nos Models |
+| Cartaz do evento | Campo `cartaz_url` (nullable) adicionado a `events` | Não estava no levantamento original, pedido nesta sessão |
+| Soft delete manual (`active`) | Flag booleana `{prefixo}_active` (default true) em `users`, `categories`, `venues`, `skills`, `artist_profiles`, `groups`, `events`, `event_sessions`, `event_media` | Retroaplicada nas migrations de criação do grupo 1/2 (projeto ainda em dev). Pivots/ligações puras (`group_members`, `artist_profile_skill`, `event_artist`, `event_group`) ficam de fora — desfazer a ligação é exclusão de verdade, não soft delete |
 
 ## Próximo passo sugerido
 

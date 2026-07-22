@@ -26,6 +26,7 @@ return new class extends Migration
             $table->decimal('use_longitude', 10, 7)->nullable();
             $table->boolean('use_is_admin')->default(false);
             $table->enum('use_tipo_conta', ['pessoa', 'empresa'])->default('pessoa');
+            $table->boolean('use_active')->default(true);
             $table->timestamps();
 
             $table->index(['use_city', 'use_state']);

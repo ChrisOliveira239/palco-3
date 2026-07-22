@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('ven_estado');
             $table->decimal('ven_latitude', 10, 7);
             $table->decimal('ven_longitude', 10, 7);
+            $table->boolean('ven_active')->default(true);
             $table->timestamps();
 
             $table->index(['ven_cidade', 'ven_estado']);

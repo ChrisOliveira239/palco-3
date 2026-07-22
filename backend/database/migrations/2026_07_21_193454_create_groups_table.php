@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('gro_email')->nullable();
             $table->string('gro_site')->nullable();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->boolean('gro_active')->default(true);
             $table->timestamps();
         });
     }

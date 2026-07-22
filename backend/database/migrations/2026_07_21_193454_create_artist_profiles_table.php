@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('art_telefone')->nullable();
             $table->string('art_email')->nullable();
             $table->string('art_site')->nullable();
+            $table->boolean('art_active')->default(true);
             $table->timestamps();
         });
     }
