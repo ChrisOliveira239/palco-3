@@ -363,6 +363,15 @@ Unique em `(opportunity_id, user_id)` — usuário se candidata a uma oportunida
 | `restrictOnDelete` em `reports.denunciante_id` | Protege histórico de moderação | Mesmo racional de `event_reviews.user_id`/`opportunity_applications.user_id` |
 | `notifications.user_id` `cascadeOnDelete` | Notificação não tem valor histórico a proteger | Mesmo racional de `follows.user_id` |
 
+## Decisões registradas (2026-07-22, seeders)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Seeders sem Models/Factories | `DB::table()->insert()` + `fake()`, exceto `users` (usa `User::factory()`, único Model existente) | Criar os outros 23 Models agora só pra rodar seeder seria antecipar a Etapa 3 sem necessidade |
+| Colunas polimórficas nos seeders | FQCN literal como string (`'App\\Models\\ArtistProfile'` etc.) | Mesmo valor que `morphs()` gravaria por padrão sem morph map; se Etapa 3 adotar morph map, basta rodar `migrate:fresh --seed` de novo (dado de dev, sem custo) |
+| Fix em `App\Models\User::$fillable` | Trocado `name` por `use_name` + demais colunas `use_*` | Bug pré-existente: fillable ainda citava `name`, mas a coluna real (migration) é `use_name` — nunca foi exercitado porque os testes padrão não tocam o banco; sem esse fix o seeder de usuários falhava |
+| Volume de dados | ~20 usuários, 12 eventos, 27 tabelas todas populadas (ver contagem no `DatabaseSeeder`) | Suficiente pra exercitar relacionamentos/constraints sem virar carga de stress test |
+
 ## Próximo passo sugerido
 
 Depois de validar os pontos acima, gerar as migrations Laravel na ordem de dependência:
@@ -374,5 +383,6 @@ Depois de validar os pontos acima, gerar as migrations Laravel na ordem de depen
 6. ~~`follows`, `favorites`, `feed_posts`, `event_reviews`~~ ✅
 7. ~~`opportunities`, `opportunity_applications`~~ ✅
 8. ~~`notifications`, `reports`~~ ✅
+9. ~~Seeders básicos (24 seeders + `DatabaseSeeder`, todas as 27 tabelas populadas)~~ ✅
 
-Todas as migrations de schema (grupos 1-8) concluídas. Próximo passo real: seeders básicos (fecha Etapa 2) e/ou Models Eloquent + Factories (Etapa 3).
+Etapa 2 (Migrations + seeders) concluída por completo. Próximo passo real: Etapa 3 (Models Eloquent + relacionamentos + Factories).
