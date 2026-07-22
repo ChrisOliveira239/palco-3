@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('reports', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('denunciante_id')->constrained('users')->restrictOnDelete();
+            $table->morphs('alvo');
+            $table->string('rep_motivo');
+            $table->enum('rep_status', ['pendente', 'analisado', 'resolvido'])->default('pendente');
+            $table->boolean('rep_active')->default(true);
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('reports');
+    }
+};

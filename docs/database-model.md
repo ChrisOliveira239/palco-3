@@ -149,11 +149,16 @@ Sem `active`: remover grupo do evento é exclusão de verdade.
 | active | boolean default true — soft delete manual |
 
 ### `event_reviews` (avaliações)
-| id | bigint PK |
-| event_id | bigint FK → events |
-| user_id | bigint FK → users |
-| nota | tinyint (1-5) |
-| comentario | text nullable — coluna já criada agora; tela de comentários pode vir depois, sem precisar de migration extra |
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | bigint PK | |
+| event_id | bigint FK → events | `cascadeOnDelete` |
+| user_id | bigint FK → users | `restrictOnDelete` — protege histórico de avaliações |
+| evr_nota | tinyint unsigned (1-5) | validação de range fica na aplicação/Model |
+| evr_comentario | text | nullable — coluna já criada agora; tela de comentários pode vir depois, sem precisar de migration extra |
+| evr_active | boolean | default true — soft delete manual |
+
+Unique em `(event_id, user_id)` — um usuário avalia um evento uma vez só. Prefixo `evr_` (não `eve_`, que já é de `events`) — mesmo padrão de colisão de `evs_`/`evm_`.
 
 ---
 
@@ -222,23 +227,24 @@ Sem `active` — remover um tipo aceito é exclusão de verdade (mesma exceção
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| user_id | bigint FK → users | |
-| seguivel_type | string | `ArtistProfile`, `Group` ou `Event` |
-| seguivel_id | bigint | |
+| user_id | bigint FK → users | `cascadeOnDelete` |
+| seguivel_type / seguivel_id | string / bigint | polimórfico (`$table->morphs('seguivel')`): `ArtistProfile`, `Group` ou `Event`; sem prefixo, tratado como equivalente a FK |
+| created_at | timestamp | default CURRENT_TIMESTAMP, sem `updated_at` |
+
+Sem `active` — deixar de seguir é exclusão de verdade (mesma exceção de `accepted_support_types`). Unique em `(user_id, seguivel_type, seguivel_id)` evita seguir o mesmo alvo duas vezes.
 
 ### `favorites`
-| user_id | bigint FK → users |
-| event_id | bigint FK → events |
+Pivot puro (sem coluna própria): `user_id` FK → `users` (`cascadeOnDelete`), `event_id` FK → `events` (`cascadeOnDelete`), chave primária composta `(user_id, event_id)` — mesmo formato de `event_artist`/`event_group`/`artist_profile_skill`.
 
 ### `feed_posts`
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| autor_type | string | polimórfico: `ArtistProfile` ou `Group` |
-| autor_id | bigint | |
-| tipo | enum(atualizacao, foto, video, evento) | |
-| conteudo | text | nullable |
-| midia_url | string | nullable |
+| autor_type / autor_id | string / bigint | polimórfico (`$table->morphs('autor')`): `ArtistProfile` ou `Group`; sem prefixo, tratado como equivalente a FK |
+| fee_tipo | enum(atualizacao, foto, video, evento) | |
+| fee_conteudo | text | nullable |
+| fee_midia_url | string | nullable |
+| fee_active | boolean | default true — soft delete manual |
 
 ---
 
@@ -248,43 +254,49 @@ Sem `active` — remover um tipo aceito é exclusão de verdade (mesma exceção
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| criador_type | string | polimórfico: `ArtistProfile` ou `Group` |
-| criador_id | bigint | |
-| titulo | string | |
-| descricao | text | |
-| skill_id | bigint FK → skills | nullable |
-| cidade | string | nullable |
-| status | enum(aberta, fechada) | default aberta |
+| criador_type / criador_id | string / bigint | polimórfico (`$table->morphs('criador')`): `ArtistProfile` ou `Group`; sem prefixo, tratado como equivalente a FK |
+| opp_titulo | string | |
+| opp_descricao | text | |
+| skill_id | bigint FK → skills | nullable, `nullOnDelete` |
+| opp_cidade | string | nullable |
+| opp_status | enum(aberta, fechada) | default aberta |
+| opp_active | boolean | default true — soft delete manual |
 
 ### `opportunity_applications`
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| opportunity_id | bigint FK → opportunities | |
-| user_id | bigint FK → users | |
-| mensagem | text | nullable |
-| status | enum(pendente, aceito, recusado) | default pendente |
+| opportunity_id | bigint FK → opportunities | `cascadeOnDelete` |
+| user_id | bigint FK → users | `restrictOnDelete` |
+| opa_mensagem | text | nullable |
+| opa_status | enum(pendente, aceito, recusado) | default pendente |
+| opa_active | boolean | default true — soft delete manual |
+
+Unique em `(opportunity_id, user_id)` — usuário se candidata a uma oportunidade uma vez só. Prefixo `opa_` (não `opp_`, que já é de `opportunities`) — mesmo padrão de colisão de `evs_`/`evm_`/`evr_`.
 
 ---
 
 ## 7. Plataforma / moderação
 
 ### `notifications`
-| id | bigint PK |
-| user_id | bigint FK → users |
-| tipo | string |
-| conteudo | json |
-| lida | boolean default false |
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | bigint PK | |
+| user_id | bigint FK → users | `cascadeOnDelete` |
+| not_tipo | string | |
+| not_conteudo | json | |
+| not_lida | boolean | default false |
+| not_active | boolean | default true — soft delete manual |
 
 ### `reports` (denúncias)
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| denunciante_id | bigint FK → users | |
-| alvo_type | string | polimórfico |
-| alvo_id | bigint | |
-| motivo | string | |
-| status | enum(pendente, analisado, resolvido) | default pendente |
+| denunciante_id | bigint FK → users | `restrictOnDelete` — protege histórico de moderação |
+| alvo_type / alvo_id | string / bigint | polimórfico (`$table->morphs('alvo')`); sem prefixo, tratado como equivalente a FK |
+| rep_motivo | string | |
+| rep_status | enum(pendente, analisado, resolvido) | default pendente |
+| rep_active | boolean | default true — soft delete manual |
 
 ---
 
@@ -323,6 +335,34 @@ Sem `active` — remover um tipo aceito é exclusão de verdade (mesma exceção
 | `active` só em `sponsorships` | `accepted_support_types` não recebe `{prefixo}_active` | É tabela de configuração/ligação (organizador define tipos aceitos) — remover é exclusão de verdade, mesma exceção dos pivots puros (`group_members`, `artist_profile_skill`, `event_artist`, `event_group`) |
 | Unicidade em `accepted_support_types` | `unique(['alvo_type', 'alvo_id', 'ast_tipo_apoio'])` | Evita duplicar o mesmo tipo aceito pro mesmo alvo — mesmo papel do `unique(['group_id', 'user_id'])` em `group_members` |
 
+## Decisões registradas (2026-07-22, grupo 6)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Prefixo `feed_posts` | `fee_` | Sem colisão com prefixos já usados |
+| Colisão `event_reviews` | `evr_` (ajusta 3ª letra) | `eve_` já é de `events` — mesmo padrão de `evs_`/`evm_` |
+| `follows`/`favorites` sem prefixo próprio | Nenhuma das duas tem coluna de negócio além de FK/morph | Não há o que prefixar |
+| `active` só em `feed_posts`/`event_reviews` | `follows`/`favorites` ficam de fora | São relações puras (seguir/favoritar) — desfazer é exclusão de verdade, mesma exceção de pivots e de `accepted_support_types` (grupo 5) |
+| PK de `follows` | `id` próprio + `unique(user_id, seguivel_type, seguivel_id)`, não PK composta | Evita PK composta com coluna string (`seguivel_type`), mesmo motivo de `accepted_support_types` |
+
+## Decisões registradas (2026-07-22, grupo 7)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Colisão `opportunities`/`opportunity_applications` | `opportunities` → `opp_` (base), `opportunity_applications` → `opa_` | Mesmo padrão de `gro_`/`grm_`, `eve_`/`evs_`/`evm_`/`evr_`, `tic_`/`tit_` |
+| `skill_id` nullable em `opportunities` | `nullOnDelete()` | Campo opcional — apagar a skill não deve arrastar a oportunidade, mesmo racional de `events.aprovado_por_id` |
+| `active` em ambas | `opp_active`/`opa_active` | São tabelas principais (anúncio e candidatura), não pivot — coexistem com `opp_status`/`opa_status` |
+| `restrictOnDelete` em `opportunity_applications.user_id` | Protege registro de candidatura | Candidatura é decisão de negócio (aceita/recusada), não preferência leve — mesmo racional de `tickets.user_id`/`event_reviews.user_id` |
+
+## Decisões registradas (2026-07-22, grupo 8)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Prefixos `notifications`/`reports` | `not_`/`rep_` | Sem colisão com prefixos já usados |
+| `active` em ambas | `not_active`/`rep_active` | Tabelas principais, não pivot — coexistem com `not_lida`/`rep_status` |
+| `restrictOnDelete` em `reports.denunciante_id` | Protege histórico de moderação | Mesmo racional de `event_reviews.user_id`/`opportunity_applications.user_id` |
+| `notifications.user_id` `cascadeOnDelete` | Notificação não tem valor histórico a proteger | Mesmo racional de `follows.user_id` |
+
 ## Próximo passo sugerido
 
 Depois de validar os pontos acima, gerar as migrations Laravel na ordem de dependência:
@@ -331,6 +371,8 @@ Depois de validar os pontos acima, gerar as migrations Laravel na ordem de depen
 3. ~~`events`, `event_sessions`, `event_artist`, `event_group`, `event_media`~~ ✅
 4. ~~`ticket_types`, `tickets`~~ ✅
 5. ~~`sponsorships`, `accepted_support_types`~~ ✅
-6. `follows`, `favorites`, `feed_posts`, `event_reviews`
-7. `opportunities`, `opportunity_applications`
-8. `notifications`, `reports`
+6. ~~`follows`, `favorites`, `feed_posts`, `event_reviews`~~ ✅
+7. ~~`opportunities`, `opportunity_applications`~~ ✅
+8. ~~`notifications`, `reports`~~ ✅
+
+Todas as migrations de schema (grupos 1-8) concluídas. Próximo passo real: seeders básicos (fecha Etapa 2) e/ou Models Eloquent + Factories (Etapa 3).
