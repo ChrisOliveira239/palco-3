@@ -123,10 +123,10 @@ Antes de criar qualquer componente novo:
 ### Nomenclatura de colunas (tabelas)
 
 - Colunas de negócio de cada tabela recebem prefixo de 3 letras derivado do **nome da tabela SQL** (inglês, como escrito na migration) — ex: `users` → `use_`, `categories` → `cat_`, `venues` → `ven_`, `skills` → `ski_`.
-- Se duas tabelas gerarem o mesmo prefixo de 3 letras, ajustar uma letra pra manter unicidade — decidir a variação no momento de criar aquela migration e registrar aqui. Já aconteceu com `groups` → `gro_` e `group_members` → `grm_`, e com o cluster `events`/`event_sessions`/`event_media` → `eve`/`evs`/`evm`.
+- Se duas tabelas gerarem o mesmo prefixo de 3 letras, ajustar uma letra pra manter unicidade — decidir a variação no momento de criar aquela migration e registrar aqui. Já aconteceu com `groups` → `gro_` e `group_members` → `grm_`; com o cluster `events`/`event_sessions`/`event_media` → `eve`/`evs`/`evm`; e com `tickets` → `tic_`/`ticket_types` → `tit_`.
 - **Não prefixar**: `id`, `created_at`/`updated_at`, chaves estrangeiras (`*_id`, seguem o padrão Eloquent `{tabela_singular}_id`), e colunas reservadas do Laravel Auth (`email`, `password`, `remember_token`, `email_verified_at`) — evita quebrar `UserProvider`, notificações, reset de senha etc.
 - Exemplo: tabela `users`, coluna de negócio `name` → `use_name`; `bio` → `use_bio`.
-- **Soft delete manual**: toda tabela "principal" (não pivot/ligação N:N) recebe uma coluna `{prefixo}_active` (boolean, default `true`) — ex: `use_active`, `eve_active`. Pivots/ligações puras (`group_members`, `artist_profile_skill`, `event_artist`, `event_group`) não recebem, porque desfazer a ligação é exclusão de verdade, não soft delete. Decisão tomada no grupo 3 (2026-07-22), retroaplicada nas tabelas dos grupos 1 e 2 enquanto o projeto estava em dev.
+- **Soft delete manual**: toda tabela "principal" (não pivot/ligação N:N) recebe uma coluna `{prefixo}_active` (boolean, default `true`) — ex: `use_active`, `eve_active`. Pivots/ligações puras (`group_members`, `artist_profile_skill`, `event_artist`, `event_group`) não recebem, porque desfazer a ligação é exclusão de verdade, não soft delete. Decisão tomada no grupo 3 (2026-07-22), retroaplicada nas tabelas dos grupos 1 e 2 enquanto o projeto estava em dev. Mesma exceção estendida em 2026-07-22 (grupo 5) a `accepted_support_types` — não é pivot N:N clássico (é config polimórfica), mas o mesmo racional se aplica: remover um tipo aceito é exclusão de verdade.
 
 ### Outras convenções (a definir conforme o projeto avança)
 
@@ -156,7 +156,7 @@ Quando o usuário pedir uma explicação (ex: "explica essa decisão", "por que 
 |---|---|---|
 | 0 | Setup do projeto (estrutura de pastas, Laravel + React instalados, banco configurado) | ✅ backend (Laravel 12 + MySQL) instalado em 2026-07-21; frontend ainda pendente |
 | 1 | Modelagem do banco de dados (entidades, relacionamentos, ER, decisões de schema) | ✅ concluída — ver `docs/database-model.md` |
-| 2 | Migrations Laravel + seeders básicos | 🔄 em andamento — grupos 1, 2 e 3 prontos (`users`, `categories`, `venues`, `skills`, `artist_profiles`, `groups`, `group_members`, `artist_profile_skill`, `events`, `event_sessions`, `event_artist`, `event_group`, `event_media`); grupos 4-8 e seeders pendentes |
+| 2 | Migrations Laravel + seeders básicos | 🔄 em andamento — grupos 1, 2, 3, 4 e 5 prontos (`users`, `categories`, `venues`, `skills`, `artist_profiles`, `groups`, `group_members`, `artist_profile_skill`, `events`, `event_sessions`, `event_artist`, `event_group`, `event_media`, `ticket_types`, `tickets`, `sponsorships`, `accepted_support_types`); grupos 6-8 e seeders pendentes |
 | 3 | Models Eloquent + relacionamentos + Factories | Pendente |
 | 4 | Autenticação e autorização (usuário, papéis: usuário/artista/grupo/admin) | Pendente |
 | 5 | API REST — módulo de Usuários e Perfis (artista/grupo) | Pendente |
@@ -176,13 +176,18 @@ Quando o usuário pedir uma explicação (ex: "explica essa decisão", "por que 
 
 > Este roadmap é vivo — etapas podem ser reordenadas ou quebradas em subetapas menores conforme o projeto avança.
 
+## Backlog de ideias (planejamento futuro, não implementar ainda)
+
+- **Enums centralizados em PHP**: extrair todos os `enum(...)` das migrations pra classes PHP nativas (`enum`) num arquivo/pasta `Type.php` (ou `app/Enums/`), valores em UPPERCASE (ex: `RASCUNHO`, `PENDENTE`, `APROVADO`). Afeta `eve_status`, `tic_status`, `spo_status`, `spo_tipo_apoio`/`ast_tipo_apoio`, `evm_tipo`, `grm_papel`, `fee_tipo` (feed) etc. Decisão de quando fazer: junto da Etapa 3 (Models Eloquent), já que Laravel casta enum de coluna pra backed enum de PHP direto no Model (`casts()`).
+- **Doação facilitada sem cadastro completo**: repensar `sponsorships.sponsor_type`/`sponsor_id` pra permitir doação com só uma identificação leve (nome/e-mail/telefone), sem exigir conta de `User` completa. Ainda em aberto — precisa decidir se vira um tipo de "sponsor" polimórfico novo (ex: `GuestSponsor`) ou um flag/coluna nullable em `sponsorships` pra dado de contato avulso. Registrado como pendência, não decidido — retomar quando chegar na Etapa 8 (API de Patrocínio).
+
 ## Status atual do projeto
 
-**Fase atual:** Etapa 2 — Migrations Laravel (grupos 1, 2 e 3 concluídos em 2026-07-21/22).
+**Fase atual:** Etapa 2 — Migrations Laravel (grupos 1, 2, 3, 4 e 5 concluídos em 2026-07-21/22).
 
-Modelagem do banco de dados concluída e documentada em `docs/database-model.md` (inclui decisões registradas sobre patrocinador pessoa/empresa, comentários em avaliações, QR Code por ingresso, busca por raio de distância, DRT/CNPJ e contato de artista/grupo, FK `aprovado_por_id`, morph `organizador` sem prefixo, cartaz de evento e a flag `active` de soft delete manual).
+Modelagem do banco de dados concluída e documentada em `docs/database-model.md` (inclui decisões registradas sobre patrocinador pessoa/empresa, comentários em avaliações, QR Code por ingresso, busca por raio de distância, DRT/CNPJ e contato de artista/grupo, FK `aprovado_por_id`, morph `organizador` sem prefixo, cartaz de evento, flag `active` de soft delete manual, colisão de prefixo `tic_`/`tit_` e prefixos `spo_`/`ast_` sem colisão).
 
-Backend Laravel 12 instalado em `backend/`, conectado a MySQL local (banco `palco-3`). Migrations criadas e rodadas: `users` (estendida), `categories`, `venues`, `skills` (grupo 1) + `artist_profiles`, `groups`, `group_members`, `artist_profile_skill` (grupo 2) + `events`, `event_sessions`, `event_artist`, `event_group`, `event_media` (grupo 3) — seguindo a convenção de prefixo de 3 letras por tabela (ver "Nomenclatura de colunas"), incluindo os ajustes de colisão `gro_`/`grm_` e `eve_`/`evs_`/`evm_`. Flag `active` (boolean, default true) retroaplicada em `users`, `categories`, `venues`, `skills`, `artist_profiles`, `groups`, `events`, `event_sessions`, `event_media` — pivots/ligações puras (`group_members`, `artist_profile_skill`, `event_artist`, `event_group`) ficam de fora. Próxima sessão: migrations do grupo 4 (`ticket_types`, `tickets`).
+Backend Laravel 12 instalado em `backend/`, conectado a MySQL local (banco `palco-3`). Migrations criadas e rodadas: `users` (estendida), `categories`, `venues`, `skills` (grupo 1) + `artist_profiles`, `groups`, `group_members`, `artist_profile_skill` (grupo 2) + `events`, `event_sessions`, `event_artist`, `event_group`, `event_media` (grupo 3) + `ticket_types`, `tickets` (grupo 4) + `sponsorships`, `accepted_support_types` (grupo 5) — seguindo a convenção de prefixo de 3 letras por tabela (ver "Nomenclatura de colunas"), incluindo os ajustes de colisão `gro_`/`grm_`, `eve_`/`evs_`/`evm_` e `tic_`/`tit_`. Flag `active` (boolean, default true) presente em `users`, `categories`, `venues`, `skills`, `artist_profiles`, `groups`, `events`, `event_sessions`, `event_media`, `ticket_types`, `tickets`, `sponsorships` — pivots/ligações puras (`group_members`, `artist_profile_skill`, `event_artist`, `event_group`) e a config polimórfica `accepted_support_types` ficam de fora. `tickets.ticket_type_id`/`tickets.user_id` usam `restrictOnDelete` pra proteger histórico de compra; `sponsorships`/`accepted_support_types` usam `$table->morphs()` (sem `constrained()`, são polimórficas) pra `sponsor`/`alvo`. Próxima sessão: migrations do grupo 6 (`follows`, `favorites`, `feed_posts`, `event_reviews`).
 
 ## Como o Claude deve ajudar neste projeto
 

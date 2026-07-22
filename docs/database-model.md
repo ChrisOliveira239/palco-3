@@ -163,25 +163,26 @@ Sem `active`: remover grupo do evento é exclusão de verdade.
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| event_session_id | bigint FK → event_sessions | |
+| event_session_id | bigint FK → event_sessions | `cascadeOnDelete` — tipo de ingresso só existe no contexto da sessão |
 | nome | string | ex: "Meia-entrada", "VIP", "Lote 1" |
 | preco | decimal(10,2) | |
 | quantidade_total | integer | |
 | quantidade_vendida | integer | default 0 |
-| venda_inicio | datetime | nullable |
-| venda_fim | datetime | nullable |
-| ativo | boolean | default true |
+| venda_inicio | datetime | nullable — inclui hora |
+| venda_fim | datetime | nullable — inclui hora |
+| active | boolean | default true — soft delete manual (renomeado de `ativo` pra seguir a convenção `active`) |
 
 ### `tickets` (ingressos individuais)
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| ticket_type_id | bigint FK → ticket_types | |
-| user_id | bigint FK → users | |
+| ticket_type_id | bigint FK → ticket_types | `restrictOnDelete` — não pode apagar lote com ingressos vendidos |
+| user_id | bigint FK → users | `restrictOnDelete` — não pode apagar usuário com ingressos comprados |
 | codigo_qr | string unique | |
 | status | enum(valido, usado, cancelado) | default valido |
-| comprado_em | timestamp | |
+| comprado_em | timestamp | default CURRENT_TIMESTAMP |
 | usado_em | timestamp | nullable |
+| active | boolean | default true — soft delete manual (ortogonal ao `status`) |
 
 ---
 
@@ -193,14 +194,13 @@ Relação polimórfica dupla: quem patrocina e o que é patrocinado.
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| sponsor_type | string | polimórfico: `User` (pode ser pessoa física ou, futuramente, empresa) |
-| sponsor_id | bigint | |
-| alvo_type | string | polimórfico: `Event`, `ArtistProfile` ou `Group` |
-| alvo_id | bigint | |
-| tipo_apoio | enum(dinheiro, equipamento, figurino, alimentacao, transporte, hospedagem, fotografia, filmagem, iluminacao, som) | |
-| valor | decimal(10,2) | nullable — só para apoio financeiro |
-| descricao | text | nullable — detalha apoio material |
-| status | enum(proposto, aceito, recusado, concluido) | |
+| sponsor_type / sponsor_id | string / bigint | polimórfico (`$table->morphs('sponsor')`): hoje só `User` (pessoa física ou, futuramente, empresa); sem prefixo, tratado como equivalente a FK |
+| alvo_type / alvo_id | string / bigint | polimórfico (`$table->morphs('alvo')`): `Event`, `ArtistProfile` ou `Group`; sem prefixo, tratado como equivalente a FK |
+| spo_tipo_apoio | enum(dinheiro, equipamento, figurino, alimentacao, transporte, hospedagem, fotografia, filmagem, iluminacao, som) | |
+| spo_valor | decimal(10,2) | nullable — só para apoio financeiro |
+| spo_descricao | text | nullable — detalha apoio material |
+| spo_status | enum(proposto, aceito, recusado, concluido) | default `proposto` |
+| spo_active | boolean | default true — soft delete manual |
 
 ### `accepted_support_types`
 Permite que cada organizador defina quais tipos de apoio aceita.
@@ -208,9 +208,11 @@ Permite que cada organizador defina quais tipos de apoio aceita.
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| alvo_type | string | polimórfico: `Event`, `ArtistProfile`, `Group` |
-| alvo_id | bigint | |
-| tipo_apoio | enum (mesmo enum de sponsorships) | |
+| alvo_type / alvo_id | string / bigint | polimórfico (`$table->morphs('alvo')`): `Event`, `ArtistProfile`, `Group`; sem prefixo, tratado como equivalente a FK |
+| ast_tipo_apoio | enum (mesmo enum de sponsorships) | |
+| created_at | timestamp | default CURRENT_TIMESTAMP, sem `updated_at` |
+
+Sem `active` — remover um tipo aceito é exclusão de verdade (mesma exceção dos pivots puros). Unique em `(alvo_type, alvo_id, ast_tipo_apoio)` evita duplicar o mesmo tipo aceito pro mesmo alvo.
 
 ---
 
@@ -304,14 +306,31 @@ Permite que cada organizador defina quais tipos de apoio aceita.
 | Cartaz do evento | Campo `cartaz_url` (nullable) adicionado a `events` | Não estava no levantamento original, pedido nesta sessão |
 | Soft delete manual (`active`) | Flag booleana `{prefixo}_active` (default true) em `users`, `categories`, `venues`, `skills`, `artist_profiles`, `groups`, `events`, `event_sessions`, `event_media` | Retroaplicada nas migrations de criação do grupo 1/2 (projeto ainda em dev). Pivots/ligações puras (`group_members`, `artist_profile_skill`, `event_artist`, `event_group`) ficam de fora — desfazer a ligação é exclusão de verdade, não soft delete |
 
+## Decisões registradas (2026-07-22, grupo 4)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Colisão de prefixo `ticket_types`/`tickets` | `tickets` → `tic_` (base), `ticket_types` → `tit_` (ajusta 3ª letra) | Mesmo padrão de `gro_`/`grm_` e `eve_`/`evs_`/`evm_` |
+| `active` em `ticket_types`/`tickets` | Ambas recebem `{prefixo}_active` | São tabelas principais, não pivot. Em `tickets`, coexiste com `tic_status` (mesmo padrão de `events`: `eve_status` + `eve_active`) |
+| Campo `ativo` do doc original | Renomeado para `active` em `ticket_types` | Alinhar com a convenção `{prefixo}_active` (nome do doc era anterior a essa convenção) |
+
+## Decisões registradas (2026-07-22, grupo 5)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Prefixos `sponsorships`/`accepted_support_types` | `spo_`/`ast_` | Sem colisão com prefixos já usados (`art`, `cat`, `eve`, `evm`, `evs`, `grm`, `gro`, `ski`, `tic`, `tit`, `use`, `ven`) |
+| Pares polimórficos `sponsor`/`alvo` | `$table->morphs('sponsor')` e `$table->morphs('alvo')`, sem prefixo | Mesma exceção já usada em `organizador` (tratado como equivalente a FK) |
+| `active` só em `sponsorships` | `accepted_support_types` não recebe `{prefixo}_active` | É tabela de configuração/ligação (organizador define tipos aceitos) — remover é exclusão de verdade, mesma exceção dos pivots puros (`group_members`, `artist_profile_skill`, `event_artist`, `event_group`) |
+| Unicidade em `accepted_support_types` | `unique(['alvo_type', 'alvo_id', 'ast_tipo_apoio'])` | Evita duplicar o mesmo tipo aceito pro mesmo alvo — mesmo papel do `unique(['group_id', 'user_id'])` em `group_members` |
+
 ## Próximo passo sugerido
 
 Depois de validar os pontos acima, gerar as migrations Laravel na ordem de dependência:
-1. `users`, `categories`, `venues`, `skills`
-2. `artist_profiles`, `groups`, `group_members`, `artist_profile_skill`
-3. `events`, `event_sessions`, `event_artist`, `event_group`, `event_media`
-4. `ticket_types`, `tickets`
-5. `sponsorships`, `accepted_support_types`
+1. ~~`users`, `categories`, `venues`, `skills`~~ ✅
+2. ~~`artist_profiles`, `groups`, `group_members`, `artist_profile_skill`~~ ✅
+3. ~~`events`, `event_sessions`, `event_artist`, `event_group`, `event_media`~~ ✅
+4. ~~`ticket_types`, `tickets`~~ ✅
+5. ~~`sponsorships`, `accepted_support_types`~~ ✅
 6. `follows`, `favorites`, `feed_posts`, `event_reviews`
 7. `opportunities`, `opportunity_applications`
 8. `notifications`, `reports`
