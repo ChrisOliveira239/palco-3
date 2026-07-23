@@ -16,7 +16,7 @@ return new class extends Migration
             $table->morphs('alvo');
             $table->enum('ast_tipo_apoio', [
                 'dinheiro', 'equipamento', 'figurino', 'alimentacao',
-                'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som',
+                'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som', 'outro',
             ]);
             $table->timestamp('created_at')->useCurrent();
 

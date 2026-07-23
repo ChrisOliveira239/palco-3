@@ -201,7 +201,7 @@ Relação polimórfica dupla: quem patrocina e o que é patrocinado.
 | id | bigint PK | |
 | sponsor_type / sponsor_id | string / bigint | polimórfico (`$table->morphs('sponsor')`): hoje só `User` (pessoa física ou, futuramente, empresa); sem prefixo, tratado como equivalente a FK |
 | alvo_type / alvo_id | string / bigint | polimórfico (`$table->morphs('alvo')`): `Event`, `ArtistProfile` ou `Group`; sem prefixo, tratado como equivalente a FK |
-| spo_tipo_apoio | enum(dinheiro, equipamento, figurino, alimentacao, transporte, hospedagem, fotografia, filmagem, iluminacao, som) | |
+| spo_tipo_apoio | enum(dinheiro, equipamento, figurino, alimentacao, transporte, hospedagem, fotografia, filmagem, iluminacao, som, outro) | |
 | spo_valor | decimal(10,2) | nullable — só para apoio financeiro |
 | spo_descricao | text | nullable — detalha apoio material |
 | spo_status | enum(proposto, aceito, recusado, concluido) | default `proposto` |
@@ -214,7 +214,7 @@ Permite que cada organizador defina quais tipos de apoio aceita.
 |---|---|---|
 | id | bigint PK | |
 | alvo_type / alvo_id | string / bigint | polimórfico (`$table->morphs('alvo')`): `Event`, `ArtistProfile`, `Group`; sem prefixo, tratado como equivalente a FK |
-| ast_tipo_apoio | enum (mesmo enum de sponsorships) | |
+| ast_tipo_apoio | enum (mesmo enum de sponsorships, 11 valores incluindo `outro`) | |
 | created_at | timestamp | default CURRENT_TIMESTAMP, sem `updated_at` |
 
 Sem `active` — remover um tipo aceito é exclusão de verdade (mesma exceção dos pivots puros). Unique em `(alvo_type, alvo_id, ast_tipo_apoio)` evita duplicar o mesmo tipo aceito pro mesmo alvo.
@@ -372,6 +372,57 @@ Unique em `(opportunity_id, user_id)` — usuário se candidata a uma oportunida
 | Fix em `App\Models\User::$fillable` | Trocado `name` por `use_name` + demais colunas `use_*` | Bug pré-existente: fillable ainda citava `name`, mas a coluna real (migration) é `use_name` — nunca foi exercitado porque os testes padrão não tocam o banco; sem esse fix o seeder de usuários falhava |
 | Volume de dados | ~20 usuários, 12 eventos, 27 tabelas todas populadas (ver contagem no `DatabaseSeeder`) | Suficiente pra exercitar relacionamentos/constraints sem virar carga de stress test |
 
+## Decisões registradas (2026-07-23, Etapa 3 — grupo 1+2)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Enums de coluna → PHP nativo | `App\Enums\Type.php` — um arquivo único com todos os `enum` backed do projeto (`TipoConta`, `GroupMemberRole` por enquanto) | Fecha item do backlog. Múltiplas classes num arquivo só quebram PSR-4 autoload (composer recusa); resolvido com `"classmap": ["app/Enums"]` no `composer.json` (o diretório é escaneado por conteúdo, não por nome de arquivo) — rodar `composer dump-autoload` sempre que um novo enum for adicionado ao arquivo |
+| Pivot `group_members` precisa de Model dedicado | `App\Models\GroupMember extends Pivot`, usado via `->using(GroupMember::class)` | Tabela tem `id` próprio + coluna extra (`grm_papel`) + só `created_at` (sem `updated_at`) — não dá pra usar pivot simples nem `withTimestamps()` padrão |
+| `GroupMember` timestamps | `public $timestamps = false;` no Model, `created_at` fica só por conta do `useCurrent()` do banco | Verificado empiricamente: `withTimestamps()` na relação usa as colunas de timestamp do Model **pai** (`Group`/`User`), não do Pivot — ignora qualquer `UPDATED_AT = null` custom no Pivot e sempre tenta inserir `updated_at`, quebrando porque a coluna não existe. Colocar `'created_at'` em `withPivot()` reativa o mesmo problema (Eloquent trata presença de qualquer coluna de timestamp no pivot como sinal pra inserir as duas). Solução: `withPivot('grm_papel')` (sem `created_at`) + `$timestamps = false` no Model — o banco preenche `created_at` sozinho. Efeito colateral: `$pivot->created_at` não vem populado ao ler a relação (não está no `withPivot`); se precisar dele no futuro, consultar a tabela direto |
+| Models/Factories criados | `Category`, `Venue`, `Skill`, `ArtistProfile`, `Group`, `GroupMember` (+ relacionamentos novos em `User`: `artistProfile()`, `ownedGroups()`, `groups()`) | Pivots sem coluna extra (`artist_profile_skill`) seguem sem Model, só `belongsToMany` nos dois lados |
+| Testes | `tests/Feature/Models/` — um teste básico de factory+persistência pra Models "planos" (`Category`/`Venue`/`Skill`), testes de relacionamento pra `ArtistProfile`/`Group`/`User` (incluindo o pivot com `grm_papel`) | `RefreshDatabase`, roda em sqlite (`phpunit.xml`) |
+
+## Decisões registradas (2026-07-23, Etapa 3 — grupo 3)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| `organizador` sem morph map | `Event::organizador(): MorphTo` usa `morphTo()` padrão, sem `Relation::morphMap()` | Seeders já gravam FQCN literal (`'App\Models\User'`/`ArtistProfile`/`Group`) e o `morphTo()` default resolve isso direto — configurar morph map agora seria abstração antecipada sem necessidade concreta (nada quebra, nada pede desacoplamento do nome da classe ainda) |
+| `event_artist`/`event_group` sem Model dedicado | `belongsToMany` simples nos dois lados (`Event::artists()`/`Event::groups()` e `ArtistProfile::events()`/`Group::events()`) | Pivots puros — PK composta, sem coluna extra, sem timestamps — mesmo caso de `artist_profile_skill` (grupo 2) |
+| Enums de coluna → PHP nativo (continuação) | `EventStatus` (`eve_status`) e `EventMediaType` (`evm_tipo`) adicionados em `App\Enums\Type.php` | Fecha mais 2 itens do backlog. Lembrete reforçado: `composer dump-autoload` é obrigatório depois de adicionar um enum novo ao arquivo — o classmap não é escaneado dinamicamente, só na hora do dump (causou falha `Class ... not found` nos testes até rodar o comando) |
+| Models/Factories criados | `Event`, `EventSession`, `EventMedia` (+ `events()` novo em `ArtistProfile` e `Group`) | `EventFactory` usa `ArtistProfile` como organizador default (mais central no domínio), com estado `porGrupo()` pra trocar pra `Group` — cobre os dois lados do polimorfismo nos testes |
+| Testes | `tests/Feature/Models/EventTest.php`, `EventSessionTest.php`, `EventMediaTest.php` — cobrem `category()`, `organizador()` (ArtistProfile e Group), `sessions()`/`media()` (hasMany), `artists()`/`groups()` (belongsToMany via pivot puro) e casts de `eve_status`/`evm_tipo` | 25 testes / 35 assertions no total, sem regressão |
+
+## Decisões registradas (2026-07-23, Etapa 3 — grupo 4)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Enums de coluna → PHP nativo (continuação) | `TicketStatus` (`tic_status`) adicionado em `App\Enums\Type.php` | Fecha mais um item do backlog. `composer dump-autoload` rodado antes de testar (mesmo lembrete dos grupos anteriores) |
+| Models/Factories criados | `TicketType`, `Ticket` (+ `ticketTypes()` novo em `EventSession`, `tickets()` novo em `User`) | Sem pivot novo neste grupo — `tickets` é tabela "principal" de verdade (FK simples pra `ticket_types`/`users`), não ligação N:N |
+| `tit_preco` cast decimal | `'tit_preco' => 'decimal:2'` no Model `TicketType` | Cast `decimal` do Eloquent retorna string formatada (ex: `'99.90'`), evita imprecisão de float em valor monetário |
+| Testes | `tests/Feature/Models/TicketTypeTest.php`, `TicketTest.php` — cobrem `eventSession()`/`tickets()` (hasMany), `ticketType()`/`user()`, cast de `tic_status` pro enum e estados de factory `usado()`/`cancelado()` | 32 testes / 44 assertions no total, sem regressão |
+
+## Decisões registradas (2026-07-23, Etapa 3 — grupo 5)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Valor `outro` adicionado ao tipo de apoio | `spo_tipo_apoio`/`ast_tipo_apoio` ganharam `outro` (11º valor) nas migrations, no enum PHP e nas duas seeders | Pedido nesta sessão — cobre casos de apoio fora dos 10 já previstos. Como é `enum(...)` no nível da coluna MySQL, exigiu editar as migrations (não só o enum PHP) e rodar `migrate:fresh --seed` de novo (projeto ainda em dev) |
+| Enums de coluna → PHP nativo (continuação) | `TipoApoio` (compartilhado entre `spo_tipo_apoio` e `ast_tipo_apoio` — um enum só pros dois, evita duplicar os 11 valores) e `SponsorshipStatus` (`spo_status`) adicionados em `App\Enums\Type.php` | Fecha os últimos itens do backlog referentes a este grupo. Resta só `fee_tipo` (grupo 6). `composer dump-autoload` rodado antes de testar |
+| Models/Factories criados | `Sponsorship` (`sponsor()`/`alvo()`, ambos `morphTo()` sem morph map — mesma decisão do `organizador`), `AcceptedSupportType` (`alvo()`) | `AcceptedSupportType` usa `$timestamps = false` (só `created_at`, preenchido pelo `useCurrent()` do banco) — mesmo caso de `GroupMember` |
+| Relações inversas | `User::sponsorships()` (`morphMany` via `sponsor`); `Event`/`ArtistProfile`/`Group` ganham `sponsorships()` e `acceptedSupportTypes()` (`morphMany` via `alvo`) | `SponsorshipFactory` tem estados `porArtistProfile()`/`porGroup()` (troca `alvo`, mesmo padrão do `porGrupo()` da `EventFactory`) e `dinheiro()` (preenche `spo_valor`, zera `spo_descricao`) |
+| Testes | `tests/Feature/Models/SponsorshipTest.php`, `AcceptedSupportTypeTest.php` — cobrem os dois lados do `morphTo` duplo em `Sponsorship`, os 3 alvos possíveis, casts de enum, estado `dinheiro()` e as relações inversas | 42 testes / 58 assertions no total, sem regressão |
+
+**Backlog registrado**: refatorar migrations/seeders pra puxarem a lista de valores diretamente de `TipoApoio::cases()` (via `array_column` ou similar) em vez de repetir o array de 11 strings em 4 lugares (2 migrations + 2 seeders) — adiado pra não acoplar migration a código de app numa mudança já em andamento; fica pra uma próxima sessão.
+
+## Decisões registradas (2026-07-23, Etapa 3 — grupo 6)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Enum de coluna → PHP nativo (último item) | `FeedPostType` (`fee_tipo`) adicionado em `App\Enums\Type.php` | Fecha o backlog "Enums centralizados em PHP" por completo — todos os enums do projeto agora vivem em `Type.php`. `composer dump-autoload` rodado antes de testar |
+| Models/Factories criados | `Follow` (`user()`/`seguivel()`), `FeedPost` (`autor()`), `EventReview` (`event()`/`user()`) | `Follow` usa `$timestamps = false` (só `created_at`, `useCurrent()` do banco) — mesmo caso de `GroupMember`/`AcceptedSupportType` |
+| `favorites` sem Model dedicado | Pivot puro (PK composta `user_id`+`event_id`, sem timestamps, sem coluna própria) — mesmo formato de `event_artist`/`event_group`/`artist_profile_skill` | Só `belongsToMany` nos dois lados: `User::favoriteEvents()` / `Event::favoritedBy()` |
+| Relações inversas | `User` ganha `follows()`, `favoriteEvents()`, `eventReviews()`; `ArtistProfile`/`Group` ganham `followers()`/`feedPosts()`; `Event` ganha `followers()`/`favoritedBy()`/`reviews()` | `Event` não ganha `feedPosts()` — seeder confirma que só `ArtistProfile`/`Group` publicam feed |
+| Testes | `tests/Feature/Models/FollowTest.php`, `FeedPostTest.php`, `EventReviewTest.php`, `FavoriteTest.php` — cobrem os 3 alvos possíveis do `morphTo` de `Follow`, os 2 autores possíveis de `FeedPost`, casts, e as relações inversas (incluindo `belongsToMany` de favoritos) | 56 testes / 81 assertions no total, sem regressão |
+
 ## Próximo passo sugerido
 
 Depois de validar os pontos acima, gerar as migrations Laravel na ordem de dependência:
@@ -384,5 +435,10 @@ Depois de validar os pontos acima, gerar as migrations Laravel na ordem de depen
 7. ~~`opportunities`, `opportunity_applications`~~ ✅
 8. ~~`notifications`, `reports`~~ ✅
 9. ~~Seeders básicos (24 seeders + `DatabaseSeeder`, todas as 27 tabelas populadas)~~ ✅
+10. ~~Etapa 3, grupo 1+2: Models Eloquent + Factories de `categories`/`venues`/`skills`/`artist_profiles`/`groups`/`group_members`~~ ✅
+11. ~~Etapa 3, grupo 3: Models Eloquent + Factories de `events`/`event_sessions`/`event_media` + pivots `event_artist`/`event_group`~~ ✅
+12. ~~Etapa 3, grupo 4: Models Eloquent + Factories de `ticket_types`/`tickets`~~ ✅
+13. ~~Etapa 3, grupo 5: Models Eloquent + Factories de `sponsorships`/`accepted_support_types`~~ ✅
+14. ~~Etapa 3, grupo 6: Models Eloquent + Factories de `follows`/`feed_posts`/`event_reviews` (+ relação `favorites` sem Model dedicado)~~ ✅
 
-Etapa 2 (Migrations + seeders) concluída por completo. Próximo passo real: Etapa 3 (Models Eloquent + relacionamentos + Factories).
+Etapa 2 (Migrations + seeders) concluída por completo. Etapa 3 em andamento (grupo 1+2+3+4+5+6 de 8 concluído). Próximo passo: Etapa 3 grupo 7 (`Opportunity`, `OpportunityApplication`).

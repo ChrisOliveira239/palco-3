@@ -17,7 +17,7 @@ class SponsorshipsSeeder extends Seeder
 
         $tiposApoio = [
             'dinheiro', 'equipamento', 'figurino', 'alimentacao',
-            'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som',
+            'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som', 'outro',
         ];
         $statusOpcoes = ['proposto', 'aceito', 'recusado', 'concluido'];
 

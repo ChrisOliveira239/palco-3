@@ -16,7 +16,7 @@ class AcceptedSupportTypesSeeder extends Seeder
 
         $tiposApoio = [
             'dinheiro', 'equipamento', 'figurino', 'alimentacao',
-            'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som',
+            'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som', 'outro',
         ];
 
         foreach ($alvos as $alvo) {

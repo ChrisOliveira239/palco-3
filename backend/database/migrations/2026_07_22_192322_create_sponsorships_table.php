@@ -17,7 +17,7 @@ return new class extends Migration
             $table->morphs('alvo');
             $table->enum('spo_tipo_apoio', [
                 'dinheiro', 'equipamento', 'figurino', 'alimentacao',
-                'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som',
+                'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som', 'outro',
             ]);
             $table->decimal('spo_valor', 10, 2)->nullable();
             $table->text('spo_descricao')->nullable();
