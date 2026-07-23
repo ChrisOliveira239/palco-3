@@ -20,7 +20,7 @@ class TicketsSeeder extends Seeder
             $vendidos = rand(0, min(5, $ticketType->tit_quantidade_total));
 
             for ($i = 0; $i < $vendidos; $i++) {
-                $status = fake()->randomElement(['valido', 'valido', 'valido', 'valido', 'usado', 'cancelado']);
+                $status = fake()->randomElement(['VALIDO', 'VALIDO', 'VALIDO', 'VALIDO', 'USADO', 'CANCELADO']);
 
                 DB::table('tickets')->insert([
                     'ticket_type_id' => $ticketType->id,
@@ -28,7 +28,7 @@ class TicketsSeeder extends Seeder
                     'tic_codigo_qr' => (string) Str::uuid(),
                     'tic_status' => $status,
                     'tic_comprado_em' => now()->subDays(rand(1, 30)),
-                    'tic_usado_em' => $status === 'usado' ? now()->subDays(rand(0, 29)) : null,
+                    'tic_usado_em' => $status === 'USADO' ? now()->subDays(rand(0, 29)) : null,
                     'tic_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),

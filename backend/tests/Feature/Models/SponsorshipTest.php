@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use App\Enums\SponsorshipStatus;
-use App\Enums\TipoApoio;
 use App\Models\ArtistProfile;
 use App\Models\Event;
 use App\Models\Group;
@@ -44,21 +42,21 @@ class SponsorshipTest extends TestCase
         $this->assertInstanceOf(Group::class, $sponsorship->alvo);
     }
 
-    public function test_casts_spo_tipo_apoio_and_spo_status_to_enum(): void
+    public function test_spo_tipo_apoio_and_spo_status_are_strings(): void
     {
         $sponsorship = Sponsorship::factory()->create([
-            'spo_tipo_apoio' => TipoApoio::EQUIPAMENTO,
+            'spo_tipo_apoio' => 'EQUIPAMENTO',
         ]);
 
-        $this->assertSame(TipoApoio::EQUIPAMENTO, $sponsorship->spo_tipo_apoio);
-        $this->assertSame(SponsorshipStatus::PROPOSTO, $sponsorship->spo_status);
+        $this->assertSame('EQUIPAMENTO', $sponsorship->spo_tipo_apoio);
+        $this->assertSame('PROPOSTO', $sponsorship->spo_status);
     }
 
     public function test_dinheiro_state_fills_valor(): void
     {
         $sponsorship = Sponsorship::factory()->dinheiro()->create();
 
-        $this->assertSame(TipoApoio::DINHEIRO, $sponsorship->spo_tipo_apoio);
+        $this->assertSame('DINHEIRO', $sponsorship->spo_tipo_apoio);
         $this->assertNotNull($sponsorship->spo_valor);
         $this->assertNull($sponsorship->spo_descricao);
     }

@@ -2,17 +2,17 @@
 
 namespace Database\Factories;
 
-use App\Enums\Types;
 use App\Models\ArtistProfile;
 use App\Models\Event;
+use App\Models\FeedPost;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Sponsorship>
+ * @extends Factory<\App\Models\Report>
  */
-class SponsorshipFactory extends Factory
+class ReportFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -22,20 +22,19 @@ class SponsorshipFactory extends Factory
     public function definition(): array
     {
         return [
-            'sponsor_type' => User::class,
-            'sponsor_id' => User::factory(),
+            'denunciante_id' => User::factory(),
             'alvo_type' => Event::class,
             'alvo_id' => Event::factory(),
-            'spo_tipo_apoio' => fake()->randomElement(Types::TIPO_APOIO),
-            'spo_valor' => null,
-            'spo_descricao' => fake()->sentence(10),
-            'spo_status' => 'PROPOSTO',
-            'spo_active' => true,
+            'rep_motivo' => fake()->randomElement([
+                'Conteúdo ofensivo', 'Spam', 'Informação falsa', 'Golpe/fraude', 'Assédio',
+            ]),
+            'rep_status' => 'PENDENTE',
+            'rep_active' => true,
         ];
     }
 
     /**
-     * Indicate that the sponsorship targets an artist profile.
+     * Indicate that the report targets an artist profile.
      */
     public function porArtistProfile(): static
     {
@@ -46,7 +45,7 @@ class SponsorshipFactory extends Factory
     }
 
     /**
-     * Indicate that the sponsorship targets a group.
+     * Indicate that the report targets a group.
      */
     public function porGroup(): static
     {
@@ -57,14 +56,13 @@ class SponsorshipFactory extends Factory
     }
 
     /**
-     * Indicate that the sponsorship is a monetary contribution.
+     * Indicate that the report targets a feed post.
      */
-    public function dinheiro(): static
+    public function porFeedPost(): static
     {
         return $this->state(fn (array $attributes) => [
-            'spo_tipo_apoio' => 'DINHEIRO',
-            'spo_valor' => fake()->randomFloat(2, 100, 5000),
-            'spo_descricao' => null,
+            'alvo_type' => FeedPost::class,
+            'alvo_id' => FeedPost::factory(),
         ]);
     }
 }

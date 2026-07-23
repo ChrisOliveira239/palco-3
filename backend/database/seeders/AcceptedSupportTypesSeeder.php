@@ -15,8 +15,8 @@ class AcceptedSupportTypesSeeder extends Seeder
         $alvos = collect($this->alvoPool())->random(10);
 
         $tiposApoio = [
-            'dinheiro', 'equipamento', 'figurino', 'alimentacao',
-            'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som', 'outro',
+            'DINHEIRO', 'EQUIPAMENTO', 'FIGURINO', 'ALIMENTACAO',
+            'TRANSPORTE', 'HOSPEDAGEM', 'FOTOGRAFIA', 'FILMAGEM', 'ILUMINACAO', 'SOM', 'OUTRO',
         ];
 
         foreach ($alvos as $alvo) {

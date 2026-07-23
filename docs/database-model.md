@@ -423,6 +423,44 @@ Unique em `(opportunity_id, user_id)` — usuário se candidata a uma oportunida
 | Relações inversas | `User` ganha `follows()`, `favoriteEvents()`, `eventReviews()`; `ArtistProfile`/`Group` ganham `followers()`/`feedPosts()`; `Event` ganha `followers()`/`favoritedBy()`/`reviews()` | `Event` não ganha `feedPosts()` — seeder confirma que só `ArtistProfile`/`Group` publicam feed |
 | Testes | `tests/Feature/Models/FollowTest.php`, `FeedPostTest.php`, `EventReviewTest.php`, `FavoriteTest.php` — cobrem os 3 alvos possíveis do `morphTo` de `Follow`, os 2 autores possíveis de `FeedPost`, casts, e as relações inversas (incluindo `belongsToMany` de favoritos) | 56 testes / 81 assertions no total, sem regressão |
 
+**Correção (registrada no grupo 7)**: a linha acima dizia que `fee_tipo` fechava o backlog "Enums centralizados em PHP" por completo — isso ignorou que `opportunities.opp_status`/`opportunity_applications.opa_status` (grupo 7) e `reports.rep_status` (grupo 8) ainda não tinham enum PHP. Corrigido no grupo 7 (ver seção abaixo).
+
+## Decisões registradas (2026-07-23, Etapa 3 — grupo 7)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| Enums de coluna → PHP nativo (correção) | `OpportunityStatus` (`opp_status`) e `OpportunityApplicationStatus` (`opa_status`) adicionados em `App\Enums\Type.php` | Backlog "Enums centralizados em PHP" tinha sido fechado cedo demais no grupo 6 (esqueceu esses 2 + `rep_status`). Agora só falta `rep_status` (grupo 8, último) |
+| Models/Factories criados | `Opportunity` (`criador()` morphTo, `skill()` belongsTo, `applications()` hasMany), `OpportunityApplication` (`opportunity()`/`user()` belongsTo) | `criador` varia entre `ArtistProfile`/`Group` (sem `Event`, confirmado pelo seeder) — mesma decisão de `organizador`/`autor`/`seguivel`, sem morph map |
+| Relações inversas | `ArtistProfile`/`Group` ganham `opportunities()` (`morphMany` via `criador`); `Skill` ganha `opportunities()` (`hasMany`); `User` ganha `opportunityApplications()` (`hasMany`) | `OpportunityFactory` tem estado `porGroup()` (troca `criador`); `OpportunityApplicationFactory` tem estados `aceita()`/`recusada()` (mesmo padrão de `usado()`/`cancelado()` da `TicketFactory`) |
+| Testes | `tests/Feature/Models/OpportunityTest.php`, `OpportunityApplicationTest.php` — cobrem os 2 criadores possíveis, `skill()`, `applications()`, casts de enum, estados de factory e as relações inversas | 67 testes / 97 assertions no total, sem regressão |
+
+## Decisões registradas (2026-07-23, Etapa 3 — grupo 8, final da Etapa 3)
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| `not_tipo` fica string, sem enum PHP | Decisão consciente — `not_tipo` é `string` livre no schema (não é `enum(...)` de banco), diferente de `rep_status` | Criar enum PHP pra ele seria introduzir restrição que o schema não tem; os 5 valores do seeder continuam sendo só convenção informal |
+| Enum de coluna → PHP nativo (último item) | `ReportStatus` (`rep_status`) adicionado em `App\Enums\Type.php` | Fecha o backlog "Enums centralizados em PHP" **de verdade** — o grupo 6 tinha marcado como concluído por engano, o grupo 7 corrigiu parcialmente, este grupo fecha o resto |
+| Models/Factories criados | `Notification` (`user()`), `Report` (`denunciante()` belongsTo, `alvo()` morphTo) | `alvo` varia entre `Event`/`ArtistProfile`/`Group`/`FeedPost` (sem `User` — confirmado pelo seeder), sem morph map, mesma decisão de sempre |
+| Relações inversas | `User` ganha `notifications()` e `reports()` (denúncias feitas, via `denunciante_id`); `Event`/`ArtistProfile`/`Group`/`FeedPost` ganham `reports()` (`morphMany` via `alvo`, denúncias recebidas) | `ReportFactory` tem estados `porArtistProfile()`/`porGroup()`/`porFeedPost()` (mesmo padrão de `SponsorshipFactory`/`FollowFactory`/`OpportunityFactory`) |
+| Testes | `tests/Feature/Models/NotificationTest.php`, `ReportTest.php` — cobrem os 4 alvos possíveis do `morphTo` de `Report`, casts, e as relações inversas | 77 testes / 110 assertions no total, sem regressão |
+
+**Etapa 3 concluída por completo** (8 de 8 grupos: Models Eloquent + relacionamentos + Factories pra todas as 27 tabelas de negócio do projeto).
+
+## Decisões registradas (2026-07-23, refactor pós-Etapa 3)
+
+Logo depois da Etapa 3 fechar, o usuário pediu pra substituir os 11 enums PHP nativos (`enum ... : string`, centralizados em `app/Enums/Type.php`) por uma abordagem mais simples: uma classe única `App\Enums\Types` com constantes array.
+
+| Ponto | Decisão | Observação |
+|---|---|---|
+| `Type.php` → `Types.php` | Arquivo com 11 `enum ... : string` deletado; nova classe `Types` com 11 `public const` array (ex: `TIPO_CONTA = ['PESSOA', 'EMPRESA']`) | `composer.json` mantém `"classmap": ["app/Enums"]` sem alteração — cobre qualquer classe na pasta, independente do nome do arquivo |
+| Valor individual = string literal | `TicketStatus::VALIDO` (cast tipado) virou `'VALIDO'` direto no código | Decisão confirmada com o usuário: sem constante escalar por valor (ex: não existe `Types::TICKET_STATUS_VALIDO`), só a lista completa (`Types::TICKET_STATUS`) pra uso com `fake()->randomElement()` |
+| Valores no banco também maiúsculos | Os 12 `enum(...)` de coluna MySQL (11 migrations, `sponsorships` tem 2 colunas) mudaram de minúsculo (`'pessoa'`) pra maiúsculo (`'PESSOA'`) | Decisão confirmada com o usuário — exigiu editar as 11 migrations e rodar `migrate:fresh --seed` de novo (projeto em dev, mesmo precedente do `outro` no grupo 5) |
+| Migrations referenciam `Types::CONST` | `$table->enum('use_tipo_conta', Types::TIPO_CONTA)->default('PESSOA')` em vez de repetir o array | Resolve a parte de migrations do backlog antigo "migrations/seeders duplicam array de valores" — seeders continuam com array hardcoded (fora do escopo pedido) |
+| Models perdem o cast de enum | Removida a entrada `'coluna' => XEnum::class` de `casts()` em 9 Models; `GroupMember`/`AcceptedSupportType` perderam o método `casts()` inteiro (só tinham essa entrada, ficaria array vazio) | Atributo passa a ser string crua — sem cast, já que não tem mais enum PHP pra mapear |
+| `notifications.not_tipo` fora do escopo | Continua `string` livre, sem constante `Types` | Mesma decisão do grupo 8 — não é `enum(...)` de banco, não há o que centralizar |
+| Testes/Factories atualizados | 9 Factories e 11 arquivos de teste trocaram referência de enum por string literal (ou `Types::CONST` nas Factories que sorteiam de uma lista, ex: `fake()->randomElement(Types::TIPO_APOIO)`) | Métodos de teste que diziam "casts... to enum" foram renomeados pra refletir que não tem mais cast (ex: `test_casts_tic_status_to_enum` → `test_tic_status_is_string`) |
+| Verificação | `composer dump-autoload` → `migrate:fresh --seed` (schema + dados com valores maiúsculos) → `php artisan test` | 77 testes / 110 assertions, mesma contagem de antes do refactor — só os valores mudaram, cobertura idêntica |
+
 ## Próximo passo sugerido
 
 Depois de validar os pontos acima, gerar as migrations Laravel na ordem de dependência:
@@ -440,5 +478,7 @@ Depois de validar os pontos acima, gerar as migrations Laravel na ordem de depen
 12. ~~Etapa 3, grupo 4: Models Eloquent + Factories de `ticket_types`/`tickets`~~ ✅
 13. ~~Etapa 3, grupo 5: Models Eloquent + Factories de `sponsorships`/`accepted_support_types`~~ ✅
 14. ~~Etapa 3, grupo 6: Models Eloquent + Factories de `follows`/`feed_posts`/`event_reviews` (+ relação `favorites` sem Model dedicado)~~ ✅
+15. ~~Etapa 3, grupo 7: Models Eloquent + Factories de `opportunities`/`opportunity_applications`~~ ✅
+16. ~~Etapa 3, grupo 8: Models Eloquent + Factories de `notifications`/`reports`~~ ✅
 
-Etapa 2 (Migrations + seeders) concluída por completo. Etapa 3 em andamento (grupo 1+2+3+4+5+6 de 8 concluído). Próximo passo: Etapa 3 grupo 7 (`Opportunity`, `OpportunityApplication`).
+Etapa 2 (Migrations + seeders) concluída por completo. **Etapa 3 (Models Eloquent + relacionamentos + Factories) concluída por completo — 8 de 8 grupos.** Próximo passo: Etapa 4 (Autenticação e autorização — usuário, papéis: usuário/artista/grupo/admin).

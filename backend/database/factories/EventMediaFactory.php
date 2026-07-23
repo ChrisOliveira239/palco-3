@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\EventMediaType;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,7 +19,7 @@ class EventMediaFactory extends Factory
     {
         return [
             'event_id' => Event::factory(),
-            'evm_tipo' => EventMediaType::FOTO,
+            'evm_tipo' => 'FOTO',
             'evm_url' => fake()->imageUrl(800, 600, 'events'),
             'evm_ordem' => 0,
             'evm_active' => true,
@@ -33,7 +32,7 @@ class EventMediaFactory extends Factory
     public function video(): static
     {
         return $this->state(fn (array $attributes) => [
-            'evm_tipo' => EventMediaType::VIDEO,
+            'evm_tipo' => 'VIDEO',
             'evm_url' => 'https://example.com/videos/'.fake()->uuid().'.mp4',
         ]);
     }

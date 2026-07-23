@@ -3,7 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Enums\TipoConta;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -58,7 +57,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'use_tipo_conta' => TipoConta::class,
         ];
     }
 
@@ -126,5 +124,29 @@ class User extends Authenticatable
     public function eventReviews(): HasMany
     {
         return $this->hasMany(EventReview::class);
+    }
+
+    /**
+     * @return HasMany<OpportunityApplication, $this>
+     */
+    public function opportunityApplications(): HasMany
+    {
+        return $this->hasMany(OpportunityApplication::class);
+    }
+
+    /**
+     * @return HasMany<Notification, $this>
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * @return HasMany<Report, $this>
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'denunciante_id');
     }
 }

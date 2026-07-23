@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\EventMediaType;
 use Database\Factories\EventMediaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -34,7 +33,6 @@ class EventMedia extends Model
     protected function casts(): array
     {
         return [
-            'evm_tipo' => EventMediaType::class,
             'evm_active' => 'boolean',
         ];
     }

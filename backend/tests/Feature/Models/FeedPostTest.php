@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use App\Enums\FeedPostType;
 use App\Models\ArtistProfile;
 use App\Models\FeedPost;
 use App\Models\Group;
@@ -27,14 +26,14 @@ class FeedPostTest extends TestCase
         $this->assertInstanceOf(Group::class, $feedPost->autor);
     }
 
-    public function test_casts_fee_tipo_to_enum_and_fee_active_to_boolean(): void
+    public function test_fee_tipo_is_string_and_fee_active_casts_to_boolean(): void
     {
         $feedPost = FeedPost::factory()->create([
-            'fee_tipo' => FeedPostType::FOTO,
+            'fee_tipo' => 'FOTO',
             'fee_active' => 1,
         ]);
 
-        $this->assertSame(FeedPostType::FOTO, $feedPost->fee_tipo);
+        $this->assertSame('FOTO', $feedPost->fee_tipo);
         $this->assertTrue($feedPost->fee_active);
     }
 

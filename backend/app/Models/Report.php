@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Database\Factories\SponsorshipFactory;
+use Database\Factories\ReportFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-class Sponsorship extends Model
+class Report extends Model
 {
-    /** @use HasFactory<SponsorshipFactory> */
+    /** @use HasFactory<ReportFactory> */
     use HasFactory;
 
     /**
@@ -18,15 +19,12 @@ class Sponsorship extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'sponsor_type',
-        'sponsor_id',
+        'denunciante_id',
         'alvo_type',
         'alvo_id',
-        'spo_tipo_apoio',
-        'spo_valor',
-        'spo_descricao',
-        'spo_status',
-        'spo_active',
+        'rep_motivo',
+        'rep_status',
+        'rep_active',
     ];
 
     /**
@@ -37,17 +35,16 @@ class Sponsorship extends Model
     protected function casts(): array
     {
         return [
-            'spo_valor' => 'decimal:2',
-            'spo_active' => 'boolean',
+            'rep_active' => 'boolean',
         ];
     }
 
     /**
-     * @return MorphTo<Model, $this>
+     * @return BelongsTo<User, $this>
      */
-    public function sponsor(): MorphTo
+    public function denunciante(): BelongsTo
     {
-        return $this->morphTo();
+        return $this->belongsTo(User::class, 'denunciante_id');
     }
 
     /**

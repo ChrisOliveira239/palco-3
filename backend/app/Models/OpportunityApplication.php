@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Database\Factories\TicketFactory;
+use Database\Factories\OpportunityApplicationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Ticket extends Model
+class OpportunityApplication extends Model
 {
-    /** @use HasFactory<TicketFactory> */
+    /** @use HasFactory<OpportunityApplicationFactory> */
     use HasFactory;
 
     /**
@@ -18,13 +18,11 @@ class Ticket extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'ticket_type_id',
+        'opportunity_id',
         'user_id',
-        'tic_codigo_qr',
-        'tic_status',
-        'tic_comprado_em',
-        'tic_usado_em',
-        'tic_active',
+        'opa_mensagem',
+        'opa_status',
+        'opa_active',
     ];
 
     /**
@@ -35,18 +33,16 @@ class Ticket extends Model
     protected function casts(): array
     {
         return [
-            'tic_comprado_em' => 'datetime',
-            'tic_usado_em' => 'datetime',
-            'tic_active' => 'boolean',
+            'opa_active' => 'boolean',
         ];
     }
 
     /**
-     * @return BelongsTo<TicketType, $this>
+     * @return BelongsTo<Opportunity, $this>
      */
-    public function ticketType(): BelongsTo
+    public function opportunity(): BelongsTo
     {
-        return $this->belongsTo(TicketType::class);
+        return $this->belongsTo(Opportunity::class);
     }
 
     /**

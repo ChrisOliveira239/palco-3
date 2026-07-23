@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use App\Enums\EventMediaType;
-use App\Enums\EventStatus;
 use App\Models\ArtistProfile;
 use App\Models\Category;
 use App\Models\Event;
@@ -47,7 +45,7 @@ class EventTest extends TestCase
             'evs_data_fim' => now()->addHours(3),
         ]);
         $media = $event->media()->create([
-            'evm_tipo' => EventMediaType::FOTO,
+            'evm_tipo' => 'FOTO',
             'evm_url' => 'https://example.com/foto.jpg',
         ]);
 
@@ -70,10 +68,10 @@ class EventTest extends TestCase
         $this->assertTrue($group->events->contains($event));
     }
 
-    public function test_casts_eve_status_to_enum(): void
+    public function test_eve_status_is_string(): void
     {
         $event = Event::factory()->publicado()->create();
 
-        $this->assertSame(EventStatus::PUBLICADO, $event->eve_status);
+        $this->assertSame('PUBLICADO', $event->eve_status);
     }
 }

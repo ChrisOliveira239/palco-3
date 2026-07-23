@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\EventStatus;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -45,7 +44,6 @@ class Event extends Model
     protected function casts(): array
     {
         return [
-            'eve_status' => EventStatus::class,
             'eve_gratuito' => 'boolean',
             'eve_links_externos' => 'array',
             'eve_aprovado_em' => 'datetime',
@@ -147,5 +145,13 @@ class Event extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(EventReview::class);
+    }
+
+    /**
+     * @return MorphMany<Report, $this>
+     */
+    public function reports(): MorphMany
+    {
+        return $this->morphMany(Report::class, 'alvo');
     }
 }

@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use App\Enums\GroupMemberRole;
-use App\Enums\TipoConta;
 use App\Models\ArtistProfile;
 use App\Models\Group;
 use App\Models\User;
@@ -35,15 +33,15 @@ class UserTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create();
 
-        $group->members()->attach($user->id, ['grm_papel' => GroupMemberRole::MEMBRO]);
+        $group->members()->attach($user->id, ['grm_papel' => 'MEMBRO']);
 
         $this->assertTrue($user->groups->contains($group));
     }
 
-    public function test_casts_use_tipo_conta_to_enum(): void
+    public function test_use_tipo_conta_is_string(): void
     {
-        $user = User::factory()->create(['use_tipo_conta' => 'empresa']);
+        $user = User::factory()->create(['use_tipo_conta' => 'EMPRESA']);
 
-        $this->assertSame(TipoConta::EMPRESA, $user->use_tipo_conta);
+        $this->assertSame('EMPRESA', $user->use_tipo_conta);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Types;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,13 +16,10 @@ return new class extends Migration
             $table->id();
             $table->morphs('sponsor');
             $table->morphs('alvo');
-            $table->enum('spo_tipo_apoio', [
-                'dinheiro', 'equipamento', 'figurino', 'alimentacao',
-                'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som', 'outro',
-            ]);
+            $table->enum('spo_tipo_apoio', Types::TIPO_APOIO);
             $table->decimal('spo_valor', 10, 2)->nullable();
             $table->text('spo_descricao')->nullable();
-            $table->enum('spo_status', ['proposto', 'aceito', 'recusado', 'concluido'])->default('proposto');
+            $table->enum('spo_status', Types::SPONSORSHIP_STATUS)->default('PROPOSTO');
             $table->boolean('spo_active')->default(true);
             $table->timestamps();
         });

@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\TicketStatus;
 use App\Models\TicketType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -24,7 +23,7 @@ class TicketFactory extends Factory
             'ticket_type_id' => TicketType::factory(),
             'user_id' => User::factory(),
             'tic_codigo_qr' => (string) Str::uuid(),
-            'tic_status' => TicketStatus::VALIDO,
+            'tic_status' => 'VALIDO',
             'tic_comprado_em' => now()->subDays(fake()->numberBetween(1, 30)),
             'tic_usado_em' => null,
             'tic_active' => true,
@@ -37,7 +36,7 @@ class TicketFactory extends Factory
     public function usado(): static
     {
         return $this->state(fn (array $attributes) => [
-            'tic_status' => TicketStatus::USADO,
+            'tic_status' => 'USADO',
             'tic_usado_em' => now(),
         ]);
     }
@@ -48,7 +47,7 @@ class TicketFactory extends Factory
     public function cancelado(): static
     {
         return $this->state(fn (array $attributes) => [
-            'tic_status' => TicketStatus::CANCELADO,
+            'tic_status' => 'CANCELADO',
         ]);
     }
 }

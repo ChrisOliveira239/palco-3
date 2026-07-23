@@ -14,7 +14,7 @@ class OpportunityApplicationsSeeder extends Seeder
     {
         $opportunityIds = DB::table('opportunities')->pluck('id');
         $userIds = DB::table('users')->pluck('id')->all();
-        $statusOpcoes = ['pendente', 'aceito', 'recusado'];
+        $statusOpcoes = ['PENDENTE', 'ACEITO', 'RECUSADO'];
 
         foreach ($opportunityIds as $opportunityId) {
             $candidatos = collect($userIds)->random(min(rand(1, 3), count($userIds)));

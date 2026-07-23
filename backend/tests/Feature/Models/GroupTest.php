@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use App\Enums\GroupMemberRole;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,18 +24,18 @@ class GroupTest extends TestCase
         $group = Group::factory()->create();
         $member = User::factory()->create();
 
-        $group->members()->attach($member->id, ['grm_papel' => GroupMemberRole::ADMIN]);
+        $group->members()->attach($member->id, ['grm_papel' => 'ADMIN']);
 
         $fetched = $group->members()->first();
 
         $this->assertTrue($fetched->is($member));
-        $this->assertSame(GroupMemberRole::ADMIN, $fetched->pivot->grm_papel);
+        $this->assertSame('ADMIN', $fetched->pivot->grm_papel);
         $this->assertTrue($member->groups->contains($group));
 
         $this->assertDatabaseHas('group_members', [
             'group_id' => $group->id,
             'user_id' => $member->id,
-            'grm_papel' => 'admin',
+            'grm_papel' => 'ADMIN',
         ]);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\FeedPostType;
+use App\Enums\Types;
 use App\Models\ArtistProfile;
 use App\Models\Group;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,7 +22,7 @@ class FeedPostFactory extends Factory
         return [
             'autor_type' => ArtistProfile::class,
             'autor_id' => ArtistProfile::factory(),
-            'fee_tipo' => fake()->randomElement(FeedPostType::cases()),
+            'fee_tipo' => fake()->randomElement(Types::FEED_POST_TYPE),
             'fee_conteudo' => fake()->sentence(15),
             'fee_midia_url' => null,
             'fee_active' => true,

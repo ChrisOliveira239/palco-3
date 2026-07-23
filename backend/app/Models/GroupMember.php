@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\GroupMemberRole;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class GroupMember extends Pivot
@@ -33,16 +32,4 @@ class GroupMember extends Pivot
         'user_id',
         'grm_papel',
     ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'grm_papel' => GroupMemberRole::class,
-        ];
-    }
 }

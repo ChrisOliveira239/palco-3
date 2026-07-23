@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Database\Factories\TicketFactory;
+use Database\Factories\NotificationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Ticket extends Model
+class Notification extends Model
 {
-    /** @use HasFactory<TicketFactory> */
+    /** @use HasFactory<NotificationFactory> */
     use HasFactory;
 
     /**
@@ -18,13 +18,11 @@ class Ticket extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'ticket_type_id',
         'user_id',
-        'tic_codigo_qr',
-        'tic_status',
-        'tic_comprado_em',
-        'tic_usado_em',
-        'tic_active',
+        'not_tipo',
+        'not_conteudo',
+        'not_lida',
+        'not_active',
     ];
 
     /**
@@ -35,18 +33,10 @@ class Ticket extends Model
     protected function casts(): array
     {
         return [
-            'tic_comprado_em' => 'datetime',
-            'tic_usado_em' => 'datetime',
-            'tic_active' => 'boolean',
+            'not_conteudo' => 'array',
+            'not_lida' => 'boolean',
+            'not_active' => 'boolean',
         ];
-    }
-
-    /**
-     * @return BelongsTo<TicketType, $this>
-     */
-    public function ticketType(): BelongsTo
-    {
-        return $this->belongsTo(TicketType::class);
     }
 
     /**

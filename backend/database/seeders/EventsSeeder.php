@@ -15,16 +15,16 @@ class EventsSeeder extends Seeder
         $categoryIds = DB::table('categories')->pluck('id')->all();
         $adminIds = DB::table('users')->where('use_is_admin', true)->pluck('id')->all();
         $organizadores = $this->organizadorPool();
-        $statusOpcoes = ['rascunho', 'pendente', 'aprovado', 'rejeitado'];
+        $statusOpcoes = ['RASCUNHO', 'PENDENTE', 'APROVADO', 'REJEITADO'];
 
         for ($i = 0; $i < 12; $i++) {
             $organizador = fake()->randomElement($organizadores);
-            $status = fake()->boolean(60) ? 'publicado' : fake()->randomElement($statusOpcoes);
+            $status = fake()->boolean(60) ? 'PUBLICADO' : fake()->randomElement($statusOpcoes);
 
             $aprovadoPorId = null;
             $aprovadoEm = null;
 
-            if (in_array($status, ['aprovado', 'publicado'], true)) {
+            if (in_array($status, ['APROVADO', 'PUBLICADO'], true)) {
                 $aprovadoPorId = fake()->randomElement($adminIds);
                 $aprovadoEm = now()->subDays(rand(1, 60));
             }

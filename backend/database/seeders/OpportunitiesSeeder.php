@@ -26,7 +26,7 @@ class OpportunitiesSeeder extends Seeder
                 'opp_descricao' => fake()->paragraph(3),
                 'skill_id' => fake()->boolean(70) ? fake()->randomElement($skillIds) : null,
                 'opp_cidade' => fake()->randomElement($cidades),
-                'opp_status' => fake()->randomElement(['aberta', 'aberta', 'aberta', 'fechada']),
+                'opp_status' => fake()->randomElement(['ABERTA', 'ABERTA', 'ABERTA', 'FECHADA']),
                 'opp_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),

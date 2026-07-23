@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\EventStatus;
 use App\Models\ArtistProfile;
 use App\Models\Category;
 use App\Models\Group;
@@ -26,7 +25,7 @@ class EventFactory extends Factory
             'category_id' => Category::factory(),
             'organizador_type' => ArtistProfile::class,
             'organizador_id' => ArtistProfile::factory(),
-            'eve_status' => EventStatus::RASCUNHO,
+            'eve_status' => 'RASCUNHO',
             'eve_gratuito' => fake()->boolean(30),
             'eve_cartaz_url' => fake()->imageUrl(600, 800),
             'eve_links_externos' => null,
@@ -53,7 +52,7 @@ class EventFactory extends Factory
     public function publicado(): static
     {
         return $this->state(fn (array $attributes) => [
-            'eve_status' => EventStatus::PUBLICADO,
+            'eve_status' => 'PUBLICADO',
         ]);
     }
 }

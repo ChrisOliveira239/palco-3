@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use App\Enums\EventMediaType;
 use App\Models\Event;
 use App\Models\EventMedia;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,17 +19,17 @@ class EventMediaTest extends TestCase
         $this->assertTrue($media->event->is($event));
     }
 
-    public function test_casts_evm_tipo_to_enum(): void
+    public function test_evm_tipo_is_string(): void
     {
         $media = EventMedia::factory()->create();
 
-        $this->assertSame(EventMediaType::FOTO, $media->evm_tipo);
+        $this->assertSame('FOTO', $media->evm_tipo);
     }
 
     public function test_video_state(): void
     {
         $media = EventMedia::factory()->video()->create();
 
-        $this->assertSame(EventMediaType::VIDEO, $media->evm_tipo);
+        $this->assertSame('VIDEO', $media->evm_tipo);
     }
 }

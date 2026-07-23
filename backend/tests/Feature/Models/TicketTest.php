@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use App\Enums\TicketStatus;
 use App\Models\Ticket;
 use App\Models\TicketType;
 use App\Models\User;
@@ -26,18 +25,18 @@ class TicketTest extends TestCase
         $this->assertTrue($ticket->user->is($user));
     }
 
-    public function test_casts_tic_status_to_enum(): void
+    public function test_tic_status_is_string(): void
     {
         $ticket = Ticket::factory()->create();
 
-        $this->assertSame(TicketStatus::VALIDO, $ticket->tic_status);
+        $this->assertSame('VALIDO', $ticket->tic_status);
     }
 
     public function test_usado_state(): void
     {
         $ticket = Ticket::factory()->usado()->create();
 
-        $this->assertSame(TicketStatus::USADO, $ticket->tic_status);
+        $this->assertSame('USADO', $ticket->tic_status);
         $this->assertNotNull($ticket->tic_usado_em);
     }
 
@@ -45,6 +44,6 @@ class TicketTest extends TestCase
     {
         $ticket = Ticket::factory()->cancelado()->create();
 
-        $this->assertSame(TicketStatus::CANCELADO, $ticket->tic_status);
+        $this->assertSame('CANCELADO', $ticket->tic_status);
     }
 }

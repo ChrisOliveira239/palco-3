@@ -100,4 +100,20 @@ class ArtistProfile extends Model
     {
         return $this->morphMany(FeedPost::class, 'autor');
     }
+
+    /**
+     * @return MorphMany<Opportunity, $this>
+     */
+    public function opportunities(): MorphMany
+    {
+        return $this->morphMany(Opportunity::class, 'criador');
+    }
+
+    /**
+     * @return MorphMany<Report, $this>
+     */
+    public function reports(): MorphMany
+    {
+        return $this->morphMany(Report::class, 'alvo');
+    }
 }

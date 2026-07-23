@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Types;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +17,7 @@ return new class extends Migration
             $table->foreignId('opportunity_id')->constrained('opportunities')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
             $table->text('opa_mensagem')->nullable();
-            $table->enum('opa_status', ['pendente', 'aceito', 'recusado'])->default('pendente');
+            $table->enum('opa_status', Types::OPPORTUNITY_APPLICATION_STATUS)->default('PENDENTE');
             $table->boolean('opa_active')->default(true);
             $table->timestamps();
 

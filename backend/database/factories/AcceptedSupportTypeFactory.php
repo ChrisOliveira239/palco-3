@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\TipoApoio;
+use App\Enums\Types;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,7 +21,7 @@ class AcceptedSupportTypeFactory extends Factory
         return [
             'alvo_type' => Event::class,
             'alvo_id' => Event::factory(),
-            'ast_tipo_apoio' => fake()->randomElement(TipoApoio::cases()),
+            'ast_tipo_apoio' => fake()->randomElement(Types::TIPO_APOIO),
         ];
     }
 }

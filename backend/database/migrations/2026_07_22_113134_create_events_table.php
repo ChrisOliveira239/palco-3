@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Types;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ return new class extends Migration
             $table->text('eve_descricao');
             $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->morphs('organizador');
-            $table->enum('eve_status', ['rascunho', 'pendente', 'aprovado', 'rejeitado', 'publicado'])->default('rascunho');
+            $table->enum('eve_status', Types::EVENT_STATUS)->default('RASCUNHO');
             $table->boolean('eve_gratuito')->default(false);
             $table->string('eve_cartaz_url')->nullable();
             $table->json('eve_links_externos')->nullable();

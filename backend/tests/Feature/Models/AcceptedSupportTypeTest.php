@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Models;
 
-use App\Enums\TipoApoio;
 use App\Models\AcceptedSupportType;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,13 +18,13 @@ class AcceptedSupportTypeTest extends TestCase
         $this->assertInstanceOf(Event::class, $accepted->alvo);
     }
 
-    public function test_casts_ast_tipo_apoio_to_enum(): void
+    public function test_ast_tipo_apoio_is_string(): void
     {
         $accepted = AcceptedSupportType::factory()->create([
-            'ast_tipo_apoio' => TipoApoio::OUTRO,
+            'ast_tipo_apoio' => 'OUTRO',
         ]);
 
-        $this->assertSame(TipoApoio::OUTRO, $accepted->ast_tipo_apoio);
+        $this->assertSame('OUTRO', $accepted->ast_tipo_apoio);
     }
 
     public function test_inverse_relation_on_event(): void

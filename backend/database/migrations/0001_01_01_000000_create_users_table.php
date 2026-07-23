@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Types;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -25,7 +26,7 @@ return new class extends Migration
             $table->decimal('use_latitude', 10, 7)->nullable();
             $table->decimal('use_longitude', 10, 7)->nullable();
             $table->boolean('use_is_admin')->default(false);
-            $table->enum('use_tipo_conta', ['pessoa', 'empresa'])->default('pessoa');
+            $table->enum('use_tipo_conta', Types::TIPO_CONTA)->default('PESSOA');
             $table->boolean('use_active')->default(true);
             $table->timestamps();
 

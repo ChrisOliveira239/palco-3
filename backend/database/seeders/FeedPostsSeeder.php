@@ -13,7 +13,7 @@ class FeedPostsSeeder extends Seeder
     public function run(): void
     {
         $autores = $this->autorPool();
-        $tipos = ['atualizacao', 'foto', 'video', 'evento'];
+        $tipos = ['ATUALIZACAO', 'FOTO', 'VIDEO', 'EVENTO'];
 
         foreach ($autores as $autor) {
             $quantidade = rand(2, 3);
@@ -26,7 +26,7 @@ class FeedPostsSeeder extends Seeder
                     'autor_id' => $autor['id'],
                     'fee_tipo' => $tipo,
                     'fee_conteudo' => fake()->sentence(15),
-                    'fee_midia_url' => $tipo === 'atualizacao' ? null : fake()->imageUrl(800, 600, 'feed'),
+                    'fee_midia_url' => $tipo === 'ATUALIZACAO' ? null : fake()->imageUrl(800, 600, 'feed'),
                     'fee_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),

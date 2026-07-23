@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\TipoApoio;
 use Database\Factories\AcceptedSupportTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,18 +28,6 @@ class AcceptedSupportType extends Model
         'alvo_id',
         'ast_tipo_apoio',
     ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'ast_tipo_apoio' => TipoApoio::class,
-        ];
-    }
 
     /**
      * @return MorphTo<Model, $this>

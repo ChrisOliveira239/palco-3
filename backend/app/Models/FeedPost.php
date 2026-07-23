@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\FeedPostType;
 use Database\Factories\FeedPostFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class FeedPost extends Model
@@ -35,7 +35,6 @@ class FeedPost extends Model
     protected function casts(): array
     {
         return [
-            'fee_tipo' => FeedPostType::class,
             'fee_active' => 'boolean',
         ];
     }
@@ -46,5 +45,13 @@ class FeedPost extends Model
     public function autor(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * @return MorphMany<Report, $this>
+     */
+    public function reports(): MorphMany
+    {
+        return $this->morphMany(Report::class, 'alvo');
     }
 }

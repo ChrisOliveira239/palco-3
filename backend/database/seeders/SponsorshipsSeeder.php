@@ -16,10 +16,10 @@ class SponsorshipsSeeder extends Seeder
         $alvos = $this->alvoPool();
 
         $tiposApoio = [
-            'dinheiro', 'equipamento', 'figurino', 'alimentacao',
-            'transporte', 'hospedagem', 'fotografia', 'filmagem', 'iluminacao', 'som', 'outro',
+            'DINHEIRO', 'EQUIPAMENTO', 'FIGURINO', 'ALIMENTACAO',
+            'TRANSPORTE', 'HOSPEDAGEM', 'FOTOGRAFIA', 'FILMAGEM', 'ILUMINACAO', 'SOM', 'OUTRO',
         ];
-        $statusOpcoes = ['proposto', 'aceito', 'recusado', 'concluido'];
+        $statusOpcoes = ['PROPOSTO', 'ACEITO', 'RECUSADO', 'CONCLUIDO'];
 
         for ($i = 0; $i < 15; $i++) {
             $alvo = fake()->randomElement($alvos);
@@ -31,8 +31,8 @@ class SponsorshipsSeeder extends Seeder
                 'alvo_type' => $alvo['type'],
                 'alvo_id' => $alvo['id'],
                 'spo_tipo_apoio' => $tipoApoio,
-                'spo_valor' => $tipoApoio === 'dinheiro' ? fake()->randomFloat(2, 100, 5000) : null,
-                'spo_descricao' => $tipoApoio === 'dinheiro' ? null : fake()->sentence(10),
+                'spo_valor' => $tipoApoio === 'DINHEIRO' ? fake()->randomFloat(2, 100, 5000) : null,
+                'spo_descricao' => $tipoApoio === 'DINHEIRO' ? null : fake()->sentence(10),
                 'spo_status' => fake()->randomElement($statusOpcoes),
                 'spo_active' => true,
                 'created_at' => now(),
