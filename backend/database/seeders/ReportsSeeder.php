@@ -15,7 +15,7 @@ class ReportsSeeder extends Seeder
         $userIds = DB::table('users')->pluck('id')->all();
         $alvos = $this->alvoPool();
         $motivos = ['Conteúdo ofensivo', 'Spam', 'Informação falsa', 'Golpe/fraude', 'Assédio'];
-        $statusOpcoes = ['pendente', 'analisado', 'resolvido'];
+        $statusOpcoes = ['PENDENTE', 'ANALISADO', 'RESOLVIDO'];
 
         for ($i = 0; $i < 8; $i++) {
             $alvo = fake()->randomElement($alvos);

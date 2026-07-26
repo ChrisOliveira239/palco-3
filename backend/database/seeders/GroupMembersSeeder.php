@@ -19,7 +19,7 @@ class GroupMembersSeeder extends Seeder
             DB::table('group_members')->insert([
                 'group_id' => $group->id,
                 'user_id' => $group->user_id,
-                'grm_papel' => 'admin',
+                'grm_papel' => 'ADMIN',
                 'created_at' => now(),
             ]);
 
@@ -31,7 +31,7 @@ class GroupMembersSeeder extends Seeder
                 DB::table('group_members')->insert([
                     'group_id' => $group->id,
                     'user_id' => $userId,
-                    'grm_papel' => 'membro',
+                    'grm_papel' => 'MEMBRO',
                     'created_at' => now(),
                 ]);
             }

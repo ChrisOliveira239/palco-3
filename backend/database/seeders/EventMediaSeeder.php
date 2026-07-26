@@ -18,12 +18,12 @@ class EventMediaSeeder extends Seeder
             $quantidade = rand(2, 3);
 
             for ($ordem = 0; $ordem < $quantidade; $ordem++) {
-                $tipo = fake()->randomElement(['foto', 'video']);
+                $tipo = fake()->randomElement(['FOTO', 'VIDEO']);
 
                 DB::table('event_media')->insert([
                     'event_id' => $eventId,
                     'evm_tipo' => $tipo,
-                    'evm_url' => $tipo === 'foto'
+                    'evm_url' => $tipo === 'FOTO'
                         ? fake()->imageUrl(800, 600, 'events')
                         : 'https://example.com/videos/'.fake()->uuid().'.mp4',
                     'evm_ordem' => $ordem,
