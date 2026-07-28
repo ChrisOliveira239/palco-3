@@ -66,6 +66,24 @@ class User extends Authenticatable
         return $this->use_is_admin;
     }
 
+    public function isArtist(): bool
+    {
+        return $this->artistProfile()->exists();
+    }
+
+    public function isGroupOwner(Group $group): bool
+    {
+        return $this->id === $group->user_id;
+    }
+
+    public function isGroupAdmin(Group $group): bool
+    {
+        return $group->members()
+            ->wherePivot('user_id', $this->id)
+            ->wherePivot('grm_papel', 'ADMIN')
+            ->exists();
+    }
+
     /**
      * @return HasOne<ArtistProfile, $this>
      */

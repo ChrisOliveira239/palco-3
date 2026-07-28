@@ -23,6 +23,19 @@ class GroupMember extends Pivot
     public $timestamps = false;
 
     /**
+     * `updateExistingPivot()` re-hydrates the pivot row via `fromRawAttributes()`,
+     * which force-flips `$timestamps` back to `true` whenever the raw row has a
+     * `created_at` key — ignoring the property above entirely. Worse, once flipped,
+     * `Pivot::getUpdatedAtColumn()` delegates to the *pivot parent* (`Group`, which
+     * does have `updated_at`) instead of this class, so `UPDATED_AT = null` here
+     * would have no effect either. Overriding this hook is the only real guard.
+     */
+    public function hasTimestampAttributes($attributes = null): bool
+    {
+        return false;
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
