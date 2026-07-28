@@ -28,4 +28,18 @@ class EventSessionFactory extends Factory
             'evs_active' => true,
         ];
     }
+
+    /**
+     * @return static
+     */
+    public function enderecoLivre(): static
+    {
+        return $this->state(fn () => [
+            'venue_id' => null,
+            'evs_local_nome' => fake()->company(),
+            'evs_endereco' => fake()->streetAddress(),
+            'evs_cidade' => fake()->city(),
+            'evs_estado' => fake()->stateAbbr(),
+        ]);
+    }
 }

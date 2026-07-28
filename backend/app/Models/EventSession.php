@@ -21,6 +21,10 @@ class EventSession extends Model
     protected $fillable = [
         'event_id',
         'venue_id',
+        'evs_local_nome',
+        'evs_endereco',
+        'evs_cidade',
+        'evs_estado',
         'evs_data_inicio',
         'evs_data_fim',
         'evs_active',

@@ -14,7 +14,11 @@ return new class extends Migration
         Schema::create('event_sessions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
-            $table->foreignId('venue_id')->constrained('venues')->restrictOnDelete();
+            $table->foreignId('venue_id')->nullable()->constrained('venues')->restrictOnDelete();
+            $table->string('evs_local_nome')->nullable();
+            $table->string('evs_endereco')->nullable();
+            $table->string('evs_cidade')->nullable();
+            $table->string('evs_estado')->nullable();
             $table->dateTime('evs_data_inicio');
             $table->dateTime('evs_data_fim')->nullable();
             $table->boolean('evs_active')->default(true);
