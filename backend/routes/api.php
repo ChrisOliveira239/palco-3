@@ -4,6 +4,7 @@ use App\Http\Controllers\ArtistProfileController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventMediaController;
 use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
@@ -14,20 +15,32 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/artist-profiles', [ArtistProfileController::class, 'index']);
-Route::get('/artist-profiles/{artistProfile}', [ArtistProfileController::class, 'show']);
+Route::prefix('artist-profiles')->group(function () {
+    Route::get('/', [ArtistProfileController::class, 'index']);
+    Route::get('/{artistProfile}', [ArtistProfileController::class, 'show']);
+});
 
-Route::get('/groups', [GroupController::class, 'index']);
-Route::get('/groups/{group}', [GroupController::class, 'show']);
-Route::get('/groups/{group}/members', [GroupMemberController::class, 'index']);
+Route::prefix('groups')->group(function () {
+    Route::get('/', [GroupController::class, 'index']);
+    Route::get('/{group}', [GroupController::class, 'show']);
+    Route::get('/{group}/members', [GroupMemberController::class, 'index']);
+});
 
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/events', [EventController::class, 'index']);
-Route::get('/events/{event}', [EventController::class, 'show']);
-Route::get('/events/{event}/sessions', [EventSessionController::class, 'index']);
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index']);
+});
 
-Route::get('/venues', [VenueController::class, 'index']);
-Route::get('/venues/{venue}', [VenueController::class, 'show']);
+Route::prefix('events')->group(function () {
+    Route::get('/', [EventController::class, 'index']);
+    Route::get('/{event}', [EventController::class, 'show']);
+    Route::get('/{event}/sessions', [EventSessionController::class, 'index']);
+    Route::get('/{event}/media', [EventMediaController::class, 'index']);
+});
+
+Route::prefix('venues')->group(function () {
+    Route::get('/', [VenueController::class, 'index']);
+    Route::get('/{venue}', [VenueController::class, 'show']);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -35,36 +48,52 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::patch('/profile', [ProfileController::class, 'update']);
 
-    Route::post('/artist-profiles', [ArtistProfileController::class, 'store']);
-    Route::patch('/artist-profiles/{artistProfile}', [ArtistProfileController::class, 'update']);
-    Route::delete('/artist-profiles/{artistProfile}', [ArtistProfileController::class, 'destroy']);
+    Route::prefix('artist-profiles')->group(function () {
+        Route::post('/', [ArtistProfileController::class, 'store']);
+        Route::patch('/{artistProfile}', [ArtistProfileController::class, 'update']);
+        Route::delete('/{artistProfile}', [ArtistProfileController::class, 'destroy']);
+    });
 
-    Route::post('/groups', [GroupController::class, 'store']);
-    Route::patch('/groups/{group}', [GroupController::class, 'update']);
-    Route::delete('/groups/{group}', [GroupController::class, 'destroy']);
+    Route::prefix('groups')->group(function () {
+        Route::post('/', [GroupController::class, 'store']);
+        Route::patch('/{group}', [GroupController::class, 'update']);
+        Route::delete('/{group}', [GroupController::class, 'destroy']);
 
-    Route::post('/groups/{group}/members', [GroupMemberController::class, 'store']);
-    Route::patch('/groups/{group}/members/{user}', [GroupMemberController::class, 'update']);
-    Route::delete('/groups/{group}/members/{user}', [GroupMemberController::class, 'destroy']);
+        Route::post('/{group}/members', [GroupMemberController::class, 'store']);
+        Route::patch('/{group}/members/{user}', [GroupMemberController::class, 'update']);
+        Route::delete('/{group}/members/{user}', [GroupMemberController::class, 'destroy']);
+    });
 
-    Route::post('/events', [EventController::class, 'store']);
-    Route::patch('/events/{event}', [EventController::class, 'update']);
-    Route::delete('/events/{event}', [EventController::class, 'destroy']);
+    Route::prefix('events')->group(function () {
+        Route::post('/', [EventController::class, 'store']);
+        Route::patch('/{event}', [EventController::class, 'update']);
+        Route::delete('/{event}', [EventController::class, 'destroy']);
 
-    Route::post('/events/{event}/sessions', [EventSessionController::class, 'store']);
-    Route::patch('/events/{event}/sessions/{session}', [EventSessionController::class, 'update']);
-    Route::delete('/events/{event}/sessions/{session}', [EventSessionController::class, 'destroy']);
+        Route::post('/{event}/sessions', [EventSessionController::class, 'store']);
+        Route::patch('/{event}/sessions/{session}', [EventSessionController::class, 'update']);
+        Route::delete('/{event}/sessions/{session}', [EventSessionController::class, 'destroy']);
+
+        Route::post('/{event}/media', [EventMediaController::class, 'store']);
+        Route::patch('/{event}/media/{media}', [EventMediaController::class, 'update']);
+        Route::delete('/{event}/media/{media}', [EventMediaController::class, 'destroy']);
+    });
 
     Route::middleware('admin')->group(function () {
-        Route::post('/categories', [CategoryController::class, 'store']);
-        Route::patch('/categories/{category}', [CategoryController::class, 'update']);
-        Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+        Route::prefix('categories')->group(function () {
+            Route::post('/', [CategoryController::class, 'store']);
+            Route::patch('/{category}', [CategoryController::class, 'update']);
+            Route::delete('/{category}', [CategoryController::class, 'destroy']);
+        });
 
-        Route::patch('/events/{event}/approve', [EventController::class, 'approve']);
-        Route::patch('/events/{event}/reject', [EventController::class, 'reject']);
+        Route::prefix('events')->group(function () {
+            Route::patch('/{event}/approve', [EventController::class, 'approve']);
+            Route::patch('/{event}/reject', [EventController::class, 'reject']);
+        });
 
-        Route::post('/venues', [VenueController::class, 'store']);
-        Route::patch('/venues/{venue}', [VenueController::class, 'update']);
-        Route::delete('/venues/{venue}', [VenueController::class, 'destroy']);
+        Route::prefix('venues')->group(function () {
+            Route::post('/', [VenueController::class, 'store']);
+            Route::patch('/{venue}', [VenueController::class, 'update']);
+            Route::delete('/{venue}', [VenueController::class, 'destroy']);
+        });
     });
 });
