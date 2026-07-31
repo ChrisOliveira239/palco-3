@@ -28,4 +28,6 @@ class Types
     public const OPPORTUNITY_APPLICATION_STATUS = ['PENDENTE', 'ACEITO', 'RECUSADO'];
 
     public const REPORT_STATUS = ['PENDENTE', 'ANALISADO', 'RESOLVIDO'];
+
+    public const EVENT_PARTICIPANT_STATUS = ['PENDENTE', 'ACEITO', 'RECUSADO'];
 }

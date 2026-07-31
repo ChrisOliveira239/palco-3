@@ -3,7 +3,9 @@
 use App\Http\Controllers\ArtistProfileController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\EventArtistController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventGroupController;
 use App\Http\Controllers\EventMediaController;
 use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\GroupController;
@@ -35,6 +37,8 @@ Route::prefix('events')->group(function () {
     Route::get('/{event}', [EventController::class, 'show']);
     Route::get('/{event}/sessions', [EventSessionController::class, 'index']);
     Route::get('/{event}/media', [EventMediaController::class, 'index']);
+    Route::get('/{event}/artists', [EventArtistController::class, 'index']);
+    Route::get('/{event}/groups', [EventGroupController::class, 'index']);
 });
 
 Route::prefix('venues')->group(function () {
@@ -76,6 +80,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{event}/media', [EventMediaController::class, 'store']);
         Route::patch('/{event}/media/{media}', [EventMediaController::class, 'update']);
         Route::delete('/{event}/media/{media}', [EventMediaController::class, 'destroy']);
+
+        Route::post('/{event}/artists', [EventArtistController::class, 'store']);
+        Route::patch('/{event}/artists/{artistProfile}', [EventArtistController::class, 'update']);
+        Route::delete('/{event}/artists/{artistProfile}', [EventArtistController::class, 'destroy']);
+
+        Route::post('/{event}/groups', [EventGroupController::class, 'store']);
+        Route::patch('/{event}/groups/{group}', [EventGroupController::class, 'update']);
+        Route::delete('/{event}/groups/{group}', [EventGroupController::class, 'destroy']);
     });
 
     Route::middleware('admin')->group(function () {

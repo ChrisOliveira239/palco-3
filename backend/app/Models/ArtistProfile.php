@@ -66,7 +66,9 @@ class ArtistProfile extends Model
      */
     public function events(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class, 'event_artist');
+        return $this->belongsToMany(Event::class, 'event_artist')
+            ->using(EventArtist::class)
+            ->withPivot('eva_status');
     }
 
     /**

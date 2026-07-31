@@ -29,6 +29,11 @@ class EventPolicy
         return $this->isOrganizer($user, $event);
     }
 
+    public function manageParticipants(User $user, Event $event): bool
+    {
+        return $this->isOrganizer($user, $event);
+    }
+
     protected function isOrganizer(User $user, Event $event): bool
     {
         if ($event->organizador_type === ArtistProfile::class) {

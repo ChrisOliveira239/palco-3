@@ -84,6 +84,14 @@ class User extends Authenticatable
             ->exists();
     }
 
+    public function organizerVouchesFor(ArtistProfile $artistProfile): bool
+    {
+        $administradosIds = Group::where('user_id', $this->id)->pluck('id')
+            ->merge($this->groups()->wherePivot('grm_papel', 'ADMIN')->pluck('groups.id'));
+
+        return $artistProfile->user->groups()->whereIn('groups.id', $administradosIds)->exists();
+    }
+
     /**
      * @return HasOne<ArtistProfile, $this>
      */

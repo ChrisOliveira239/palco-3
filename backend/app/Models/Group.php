@@ -67,7 +67,9 @@ class Group extends Model
      */
     public function events(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class, 'event_group');
+        return $this->belongsToMany(Event::class, 'event_group')
+            ->using(EventGroup::class)
+            ->withPivot('evg_status');
     }
 
     /**

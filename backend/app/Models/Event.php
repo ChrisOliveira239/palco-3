@@ -96,7 +96,9 @@ class Event extends Model
      */
     public function artists(): BelongsToMany
     {
-        return $this->belongsToMany(ArtistProfile::class, 'event_artist');
+        return $this->belongsToMany(ArtistProfile::class, 'event_artist')
+            ->using(EventArtist::class)
+            ->withPivot('eva_status');
     }
 
     /**
@@ -104,7 +106,9 @@ class Event extends Model
      */
     public function groups(): BelongsToMany
     {
-        return $this->belongsToMany(Group::class, 'event_group');
+        return $this->belongsToMany(Group::class, 'event_group')
+            ->using(EventGroup::class)
+            ->withPivot('evg_status');
     }
 
     /**
