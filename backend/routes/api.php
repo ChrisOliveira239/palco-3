@@ -11,6 +11,7 @@ use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TicketTypeController;
 use App\Http\Controllers\VenueController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +40,7 @@ Route::prefix('events')->group(function () {
     Route::get('/{event}/media', [EventMediaController::class, 'index']);
     Route::get('/{event}/artists', [EventArtistController::class, 'index']);
     Route::get('/{event}/groups', [EventGroupController::class, 'index']);
+    Route::get('/{event}/sessions/{session}/ticket-types', [TicketTypeController::class, 'index']);
 });
 
 Route::prefix('venues')->group(function () {
@@ -88,6 +90,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{event}/groups', [EventGroupController::class, 'store']);
         Route::patch('/{event}/groups/{group}', [EventGroupController::class, 'update']);
         Route::delete('/{event}/groups/{group}', [EventGroupController::class, 'destroy']);
+
+        Route::post('/{event}/sessions/{session}/ticket-types', [TicketTypeController::class, 'store']);
+        Route::patch('/{event}/sessions/{session}/ticket-types/{ticketType}', [TicketTypeController::class, 'update']);
+        Route::delete('/{event}/sessions/{session}/ticket-types/{ticketType}', [TicketTypeController::class, 'destroy']);
     });
 
     Route::middleware('admin')->group(function () {
