@@ -12,6 +12,7 @@ use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SponsorshipController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketTypeController;
 use App\Http\Controllers\TicketValidationController;
@@ -25,6 +26,7 @@ Route::prefix('artist-profiles')->group(function () {
     Route::get('/', [ArtistProfileController::class, 'index']);
     Route::get('/{artistProfile}', [ArtistProfileController::class, 'show']);
     Route::get('/{artistProfile}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForArtistProfile']);
+    Route::get('/{artistProfile}/sponsorships', [SponsorshipController::class, 'indexForArtistProfile']);
 });
 
 Route::prefix('groups')->group(function () {
@@ -32,6 +34,7 @@ Route::prefix('groups')->group(function () {
     Route::get('/{group}', [GroupController::class, 'show']);
     Route::get('/{group}/members', [GroupMemberController::class, 'index']);
     Route::get('/{group}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForGroup']);
+    Route::get('/{group}/sponsorships', [SponsorshipController::class, 'indexForGroup']);
 });
 
 Route::prefix('categories')->group(function () {
@@ -47,6 +50,7 @@ Route::prefix('events')->group(function () {
     Route::get('/{event}/groups', [EventGroupController::class, 'index']);
     Route::get('/{event}/sessions/{session}/ticket-types', [TicketTypeController::class, 'index']);
     Route::get('/{event}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForEvent']);
+    Route::get('/{event}/sponsorships', [SponsorshipController::class, 'indexForEvent']);
 });
 
 Route::prefix('venues')->group(function () {
@@ -67,6 +71,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/{artistProfile}/accepted-support-types', [AcceptedSupportTypeController::class, 'storeForArtistProfile']);
         Route::delete('/{artistProfile}/accepted-support-types/{acceptedSupportType}', [AcceptedSupportTypeController::class, 'destroyForArtistProfile']);
+
+        Route::get('/{artistProfile}/sponsorships/pending', [SponsorshipController::class, 'pendingForArtistProfile']);
+        Route::post('/{artistProfile}/sponsorships', [SponsorshipController::class, 'storeForArtistProfile']);
     });
 
     Route::prefix('groups')->group(function () {
@@ -80,6 +87,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/{group}/accepted-support-types', [AcceptedSupportTypeController::class, 'storeForGroup']);
         Route::delete('/{group}/accepted-support-types/{acceptedSupportType}', [AcceptedSupportTypeController::class, 'destroyForGroup']);
+
+        Route::get('/{group}/sponsorships/pending', [SponsorshipController::class, 'pendingForGroup']);
+        Route::post('/{group}/sponsorships', [SponsorshipController::class, 'storeForGroup']);
     });
 
     Route::prefix('events')->group(function () {
@@ -113,11 +123,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/{event}/accepted-support-types', [AcceptedSupportTypeController::class, 'storeForEvent']);
         Route::delete('/{event}/accepted-support-types/{acceptedSupportType}', [AcceptedSupportTypeController::class, 'destroyForEvent']);
+
+        Route::get('/{event}/sponsorships/pending', [SponsorshipController::class, 'pendingForEvent']);
+        Route::post('/{event}/sponsorships', [SponsorshipController::class, 'storeForEvent']);
     });
 
     Route::prefix('tickets')->group(function () {
         Route::get('/', [TicketController::class, 'index']);
         Route::get('/{ticket}', [TicketController::class, 'show']);
+    });
+
+    Route::prefix('sponsorships')->group(function () {
+        Route::get('/', [SponsorshipController::class, 'index']);
+        Route::patch('/{sponsorship}', [SponsorshipController::class, 'update']);
+        Route::delete('/{sponsorship}', [SponsorshipController::class, 'destroy']);
     });
 
     Route::middleware('admin')->group(function () {
