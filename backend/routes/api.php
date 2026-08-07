@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcceptedSupportTypeController;
 use App\Http\Controllers\ArtistProfileController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CategoryController;
@@ -23,12 +24,14 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::prefix('artist-profiles')->group(function () {
     Route::get('/', [ArtistProfileController::class, 'index']);
     Route::get('/{artistProfile}', [ArtistProfileController::class, 'show']);
+    Route::get('/{artistProfile}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForArtistProfile']);
 });
 
 Route::prefix('groups')->group(function () {
     Route::get('/', [GroupController::class, 'index']);
     Route::get('/{group}', [GroupController::class, 'show']);
     Route::get('/{group}/members', [GroupMemberController::class, 'index']);
+    Route::get('/{group}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForGroup']);
 });
 
 Route::prefix('categories')->group(function () {
@@ -43,6 +46,7 @@ Route::prefix('events')->group(function () {
     Route::get('/{event}/artists', [EventArtistController::class, 'index']);
     Route::get('/{event}/groups', [EventGroupController::class, 'index']);
     Route::get('/{event}/sessions/{session}/ticket-types', [TicketTypeController::class, 'index']);
+    Route::get('/{event}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForEvent']);
 });
 
 Route::prefix('venues')->group(function () {
@@ -60,6 +64,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [ArtistProfileController::class, 'store']);
         Route::patch('/{artistProfile}', [ArtistProfileController::class, 'update']);
         Route::delete('/{artistProfile}', [ArtistProfileController::class, 'destroy']);
+
+        Route::post('/{artistProfile}/accepted-support-types', [AcceptedSupportTypeController::class, 'storeForArtistProfile']);
+        Route::delete('/{artistProfile}/accepted-support-types/{acceptedSupportType}', [AcceptedSupportTypeController::class, 'destroyForArtistProfile']);
     });
 
     Route::prefix('groups')->group(function () {
@@ -70,6 +77,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{group}/members', [GroupMemberController::class, 'store']);
         Route::patch('/{group}/members/{user}', [GroupMemberController::class, 'update']);
         Route::delete('/{group}/members/{user}', [GroupMemberController::class, 'destroy']);
+
+        Route::post('/{group}/accepted-support-types', [AcceptedSupportTypeController::class, 'storeForGroup']);
+        Route::delete('/{group}/accepted-support-types/{acceptedSupportType}', [AcceptedSupportTypeController::class, 'destroyForGroup']);
     });
 
     Route::prefix('events')->group(function () {
@@ -100,6 +110,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{event}/sessions/{session}/ticket-types/{ticketType}/tickets', [TicketController::class, 'store']);
 
         Route::post('/{event}/tickets/validate', [TicketValidationController::class, 'store']);
+
+        Route::post('/{event}/accepted-support-types', [AcceptedSupportTypeController::class, 'storeForEvent']);
+        Route::delete('/{event}/accepted-support-types/{acceptedSupportType}', [AcceptedSupportTypeController::class, 'destroyForEvent']);
     });
 
     Route::prefix('tickets')->group(function () {

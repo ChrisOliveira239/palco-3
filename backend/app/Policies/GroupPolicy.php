@@ -21,4 +21,9 @@ class GroupPolicy
     {
         return $user->isGroupOwner($group) || $user->isGroupAdmin($group);
     }
+
+    public function manageSponsorships(User $user, Group $group): bool
+    {
+        return $user->isGroupOwner($group) || $user->isGroupAdmin($group);
+    }
 }
