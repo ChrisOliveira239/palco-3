@@ -11,6 +11,7 @@ use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketTypeController;
 use App\Http\Controllers\VenueController;
 use Illuminate\Support\Facades\Route;
@@ -94,6 +95,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{event}/sessions/{session}/ticket-types', [TicketTypeController::class, 'store']);
         Route::patch('/{event}/sessions/{session}/ticket-types/{ticketType}', [TicketTypeController::class, 'update']);
         Route::delete('/{event}/sessions/{session}/ticket-types/{ticketType}', [TicketTypeController::class, 'destroy']);
+
+        Route::post('/{event}/sessions/{session}/ticket-types/{ticketType}/tickets', [TicketController::class, 'store']);
+    });
+
+    Route::prefix('tickets')->group(function () {
+        Route::get('/', [TicketController::class, 'index']);
+        Route::get('/{ticket}', [TicketController::class, 'show']);
     });
 
     Route::middleware('admin')->group(function () {
