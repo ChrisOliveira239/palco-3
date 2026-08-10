@@ -15,6 +15,7 @@ use App\Http\Controllers\FeedPostController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpportunityApplicationController;
 use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\ProfileController;
@@ -193,6 +194,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/following', [FollowController::class, 'following']);
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::get('/feed', [FeedController::class, 'index']);
+
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::patch('/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::patch('/{notification}/read', [NotificationController::class, 'markAsRead']);
+        Route::delete('/{notification}', [NotificationController::class, 'destroy']);
+    });
 
     Route::middleware('admin')->group(function () {
         Route::prefix('categories')->group(function () {
