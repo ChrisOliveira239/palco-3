@@ -9,6 +9,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventGroupController;
 use App\Http\Controllers\EventMediaController;
 use App\Http\Controllers\EventSessionController;
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\OpportunityApplicationController;
@@ -29,6 +30,7 @@ Route::prefix('artist-profiles')->group(function () {
     Route::get('/{artistProfile}', [ArtistProfileController::class, 'show']);
     Route::get('/{artistProfile}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForArtistProfile']);
     Route::get('/{artistProfile}/sponsorships', [SponsorshipController::class, 'indexForArtistProfile']);
+    Route::get('/{artistProfile}/followers', [FollowController::class, 'followersForArtistProfile']);
 });
 
 Route::prefix('groups')->group(function () {
@@ -37,6 +39,7 @@ Route::prefix('groups')->group(function () {
     Route::get('/{group}/members', [GroupMemberController::class, 'index']);
     Route::get('/{group}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForGroup']);
     Route::get('/{group}/sponsorships', [SponsorshipController::class, 'indexForGroup']);
+    Route::get('/{group}/followers', [FollowController::class, 'followersForGroup']);
 });
 
 Route::prefix('categories')->group(function () {
@@ -53,6 +56,7 @@ Route::prefix('events')->group(function () {
     Route::get('/{event}/sessions/{session}/ticket-types', [TicketTypeController::class, 'index']);
     Route::get('/{event}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForEvent']);
     Route::get('/{event}/sponsorships', [SponsorshipController::class, 'indexForEvent']);
+    Route::get('/{event}/followers', [FollowController::class, 'followersForEvent']);
 });
 
 Route::prefix('venues')->group(function () {
@@ -81,6 +85,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/{artistProfile}/sponsorships/pending', [SponsorshipController::class, 'pendingForArtistProfile']);
         Route::post('/{artistProfile}/sponsorships', [SponsorshipController::class, 'storeForArtistProfile']);
+
+        Route::post('/{artistProfile}/follow', [FollowController::class, 'followArtistProfile']);
+        Route::delete('/{artistProfile}/follow', [FollowController::class, 'unfollowArtistProfile']);
     });
 
     Route::prefix('groups')->group(function () {
@@ -97,6 +104,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/{group}/sponsorships/pending', [SponsorshipController::class, 'pendingForGroup']);
         Route::post('/{group}/sponsorships', [SponsorshipController::class, 'storeForGroup']);
+
+        Route::post('/{group}/follow', [FollowController::class, 'followGroup']);
+        Route::delete('/{group}/follow', [FollowController::class, 'unfollowGroup']);
     });
 
     Route::prefix('events')->group(function () {
@@ -133,6 +143,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/{event}/sponsorships/pending', [SponsorshipController::class, 'pendingForEvent']);
         Route::post('/{event}/sponsorships', [SponsorshipController::class, 'storeForEvent']);
+
+        Route::post('/{event}/follow', [FollowController::class, 'followEvent']);
+        Route::delete('/{event}/follow', [FollowController::class, 'unfollowEvent']);
     });
 
     Route::prefix('tickets')->group(function () {
@@ -160,6 +173,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('opportunity-applications')->group(function () {
         Route::get('/', [OpportunityApplicationController::class, 'mine']);
     });
+
+    Route::get('/following', [FollowController::class, 'following']);
 
     Route::middleware('admin')->group(function () {
         Route::prefix('categories')->group(function () {
