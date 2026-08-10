@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-function App() {
+export function Home() {
   return (
     <div className="flex min-h-svh items-center justify-center p-8">
       <Card className="w-full max-w-sm">
@@ -18,5 +18,3 @@ function App() {
     </div>
   )
 }
-
-export default App
