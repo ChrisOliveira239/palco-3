@@ -9,6 +9,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventGroupController;
 use App\Http\Controllers\EventMediaController;
 use App\Http\Controllers\EventSessionController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
@@ -146,6 +147,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/{event}/follow', [FollowController::class, 'followEvent']);
         Route::delete('/{event}/follow', [FollowController::class, 'unfollowEvent']);
+
+        Route::post('/{event}/favorite', [FavoriteController::class, 'store']);
+        Route::delete('/{event}/favorite', [FavoriteController::class, 'destroy']);
     });
 
     Route::prefix('tickets')->group(function () {
@@ -175,6 +179,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/following', [FollowController::class, 'following']);
+    Route::get('/favorites', [FavoriteController::class, 'index']);
 
     Route::middleware('admin')->group(function () {
         Route::prefix('categories')->group(function () {
