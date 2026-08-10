@@ -11,6 +11,7 @@ use App\Http\Controllers\EventMediaController;
 use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
+use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SponsorshipController;
 use App\Http\Controllers\TicketController;
@@ -56,6 +57,11 @@ Route::prefix('events')->group(function () {
 Route::prefix('venues')->group(function () {
     Route::get('/', [VenueController::class, 'index']);
     Route::get('/{venue}', [VenueController::class, 'show']);
+});
+
+Route::prefix('opportunities')->group(function () {
+    Route::get('/', [OpportunityController::class, 'index']);
+    Route::get('/{opportunity}', [OpportunityController::class, 'show']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -137,6 +143,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [SponsorshipController::class, 'index']);
         Route::patch('/{sponsorship}', [SponsorshipController::class, 'update']);
         Route::delete('/{sponsorship}', [SponsorshipController::class, 'destroy']);
+    });
+
+    Route::prefix('opportunities')->group(function () {
+        Route::post('/', [OpportunityController::class, 'store']);
+        Route::patch('/{opportunity}', [OpportunityController::class, 'update']);
+        Route::delete('/{opportunity}', [OpportunityController::class, 'destroy']);
     });
 
     Route::middleware('admin')->group(function () {
