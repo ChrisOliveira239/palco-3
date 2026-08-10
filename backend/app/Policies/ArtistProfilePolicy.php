@@ -21,4 +21,9 @@ class ArtistProfilePolicy
     {
         return $user->id === $artistProfile->user_id;
     }
+
+    public function manageFeedPosts(User $user, ArtistProfile $artistProfile): bool
+    {
+        return $user->id === $artistProfile->user_id;
+    }
 }

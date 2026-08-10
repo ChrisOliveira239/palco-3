@@ -10,6 +10,7 @@ use App\Http\Controllers\EventGroupController;
 use App\Http\Controllers\EventMediaController;
 use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\FeedPostController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
@@ -32,6 +33,7 @@ Route::prefix('artist-profiles')->group(function () {
     Route::get('/{artistProfile}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForArtistProfile']);
     Route::get('/{artistProfile}/sponsorships', [SponsorshipController::class, 'indexForArtistProfile']);
     Route::get('/{artistProfile}/followers', [FollowController::class, 'followersForArtistProfile']);
+    Route::get('/{artistProfile}/feed-posts', [FeedPostController::class, 'indexForArtistProfile']);
 });
 
 Route::prefix('groups')->group(function () {
@@ -41,6 +43,7 @@ Route::prefix('groups')->group(function () {
     Route::get('/{group}/accepted-support-types', [AcceptedSupportTypeController::class, 'indexForGroup']);
     Route::get('/{group}/sponsorships', [SponsorshipController::class, 'indexForGroup']);
     Route::get('/{group}/followers', [FollowController::class, 'followersForGroup']);
+    Route::get('/{group}/feed-posts', [FeedPostController::class, 'indexForGroup']);
 });
 
 Route::prefix('categories')->group(function () {
@@ -89,6 +92,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/{artistProfile}/follow', [FollowController::class, 'followArtistProfile']);
         Route::delete('/{artistProfile}/follow', [FollowController::class, 'unfollowArtistProfile']);
+
+        Route::post('/{artistProfile}/feed-posts', [FeedPostController::class, 'storeForArtistProfile']);
+        Route::patch('/{artistProfile}/feed-posts/{feedPost}', [FeedPostController::class, 'updateForArtistProfile']);
+        Route::delete('/{artistProfile}/feed-posts/{feedPost}', [FeedPostController::class, 'destroyForArtistProfile']);
     });
 
     Route::prefix('groups')->group(function () {
@@ -108,6 +115,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/{group}/follow', [FollowController::class, 'followGroup']);
         Route::delete('/{group}/follow', [FollowController::class, 'unfollowGroup']);
+
+        Route::post('/{group}/feed-posts', [FeedPostController::class, 'storeForGroup']);
+        Route::patch('/{group}/feed-posts/{feedPost}', [FeedPostController::class, 'updateForGroup']);
+        Route::delete('/{group}/feed-posts/{feedPost}', [FeedPostController::class, 'destroyForGroup']);
     });
 
     Route::prefix('events')->group(function () {
