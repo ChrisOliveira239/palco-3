@@ -11,6 +11,7 @@ use App\Http\Controllers\EventMediaController;
 use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupMemberController;
+use App\Http\Controllers\OpportunityApplicationController;
 use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SponsorshipController;
@@ -149,6 +150,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [OpportunityController::class, 'store']);
         Route::patch('/{opportunity}', [OpportunityController::class, 'update']);
         Route::delete('/{opportunity}', [OpportunityController::class, 'destroy']);
+
+        Route::get('/{opportunity}/applications', [OpportunityApplicationController::class, 'index']);
+        Route::post('/{opportunity}/applications', [OpportunityApplicationController::class, 'store']);
+        Route::patch('/{opportunity}/applications/{application}', [OpportunityApplicationController::class, 'update']);
+        Route::delete('/{opportunity}/applications/{application}', [OpportunityApplicationController::class, 'destroy']);
+    });
+
+    Route::prefix('opportunity-applications')->group(function () {
+        Route::get('/', [OpportunityApplicationController::class, 'mine']);
     });
 
     Route::middleware('admin')->group(function () {

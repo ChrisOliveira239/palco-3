@@ -19,6 +19,11 @@ class OpportunityPolicy
         return $this->isCriador($user, $opportunity);
     }
 
+    public function manageApplications(User $user, Opportunity $opportunity): bool
+    {
+        return $this->isCriador($user, $opportunity);
+    }
+
     protected function isCriador(User $user, Opportunity $opportunity): bool
     {
         if ($opportunity->criador_type === ArtistProfile::class) {
