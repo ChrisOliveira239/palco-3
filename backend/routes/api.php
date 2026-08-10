@@ -10,6 +10,7 @@ use App\Http\Controllers\EventGroupController;
 use App\Http\Controllers\EventMediaController;
 use App\Http\Controllers\EventSessionController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FeedPostController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GroupController;
@@ -191,6 +192,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/following', [FollowController::class, 'following']);
     Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::get('/feed', [FeedController::class, 'index']);
 
     Route::middleware('admin')->group(function () {
         Route::prefix('categories')->group(function () {
