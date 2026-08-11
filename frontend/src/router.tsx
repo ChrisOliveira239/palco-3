@@ -6,6 +6,7 @@ import { Home } from '@/pages/Home'
 import { Login } from '@/pages/Login'
 import { Register } from '@/pages/Register'
 import { Profile } from '@/pages/Profile'
+import { EventDetail } from '@/pages/EventDetail'
 import { NotFound } from '@/pages/NotFound'
 
 export const routes: RouteObject[] = [
@@ -14,6 +15,7 @@ export const routes: RouteObject[] = [
     element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
+      { path: 'eventos/:id', element: <EventDetail /> },
       {
         element: <GuestOnly />,
         children: [

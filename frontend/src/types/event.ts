@@ -1,4 +1,8 @@
+import type { ArtistProfile } from './artist-profile'
 import type { Category } from './category'
+import type { EventMedia } from './event-media'
+import type { Group } from './group'
+import type { TicketType } from './ticket-type'
 import type { Venue } from './venue'
 
 export interface EventSession {
@@ -13,6 +17,7 @@ export interface EventSession {
   evs_data_fim: string | null
   evs_active: boolean
   venue: Venue | null
+  ticket_types?: TicketType[]
 }
 
 export interface Event {
@@ -31,4 +36,7 @@ export interface Event {
   eve_active: boolean
   category: Category
   sessions: EventSession[]
+  media?: EventMedia[]
+  artists?: ArtistProfile[]
+  groups?: Group[]
 }

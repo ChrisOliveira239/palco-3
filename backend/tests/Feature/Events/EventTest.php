@@ -81,6 +81,31 @@ class EventTest extends TestCase
             ->assertJsonPath('event.id', $event->id);
     }
 
+    public function test_show_returns_event_with_related_data_eager_loaded(): void
+    {
+        $event = Event::factory()->create(['eve_status' => 'PUBLICADO', 'eve_active' => true]);
+
+        $session = EventSession::factory()->create(['event_id' => $event->id]);
+        \App\Models\TicketType::factory()->create(['event_session_id' => $session->id, 'tit_active' => true]);
+        \App\Models\TicketType::factory()->create(['event_session_id' => $session->id, 'tit_active' => false]);
+
+        \App\Models\EventMedia::factory()->create(['event_id' => $event->id, 'evm_active' => true]);
+        \App\Models\EventMedia::factory()->create(['event_id' => $event->id, 'evm_active' => false]);
+
+        $artistaAceito = ArtistProfile::factory()->create();
+        $artistaPendente = ArtistProfile::factory()->create();
+        $event->artists()->attach($artistaAceito->id, ['eva_status' => 'ACEITO']);
+        $event->artists()->attach($artistaPendente->id, ['eva_status' => 'PENDENTE']);
+
+        $response = $this->getJson("/api/events/{$event->id}")->assertOk();
+
+        $this->assertEquals($event->category_id, $response->json('event.category.id'));
+        $this->assertCount(1, $response->json('event.sessions.0.ticket_types'));
+        $this->assertCount(1, $response->json('event.media'));
+        $artistIds = collect($response->json('event.artists'))->pluck('id');
+        $this->assertEquals([$artistaAceito->id], $artistIds->all());
+    }
+
     public function test_non_published_event_returns_404_even_for_organizer(): void
     {
         $artistProfile = ArtistProfile::factory()->create();

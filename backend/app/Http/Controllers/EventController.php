@@ -41,6 +41,19 @@ class EventController extends Controller
     {
         abort_unless($event->eve_status === 'PUBLICADO' && $event->eve_active, 404);
 
+        $event->load([
+            'category',
+            'sessions' => function ($query) {
+                $query->where('evs_active', true)->orderBy('evs_data_inicio')->with([
+                    'venue',
+                    'ticketTypes' => fn ($query) => $query->where('tit_active', true),
+                ]);
+            },
+            'media' => fn ($query) => $query->where('evm_active', true)->orderBy('evm_ordem'),
+            'artists' => fn ($query) => $query->wherePivot('eva_status', 'ACEITO'),
+            'groups' => fn ($query) => $query->wherePivot('evg_status', 'ACEITO'),
+        ]);
+
         return response()->json(['event' => $event]);
     }
 
