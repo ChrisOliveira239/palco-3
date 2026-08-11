@@ -7,6 +7,7 @@ import { Login } from '@/pages/Login'
 import { Register } from '@/pages/Register'
 import { Profile } from '@/pages/Profile'
 import { EventDetail } from '@/pages/EventDetail'
+import { Feed } from '@/pages/Feed'
 import { NotFound } from '@/pages/NotFound'
 
 export const routes: RouteObject[] = [
@@ -25,7 +26,10 @@ export const routes: RouteObject[] = [
       },
       {
         element: <RequireAuth />,
-        children: [{ path: 'perfil', element: <Profile /> }],
+        children: [
+          { path: 'perfil', element: <Profile /> },
+          { path: 'feed', element: <Feed /> },
+        ],
       },
       { path: '*', element: <NotFound /> },
     ],

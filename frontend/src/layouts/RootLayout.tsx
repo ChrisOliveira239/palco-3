@@ -20,6 +20,9 @@ export function RootLayout() {
         <nav className="flex items-center gap-4">
           {status === 'authenticated' ? (
             <>
+              <Link to="/feed" className="text-sm underline">
+                Feed
+              </Link>
               <Link to="/perfil" className="text-sm underline">
                 Perfil
               </Link>
