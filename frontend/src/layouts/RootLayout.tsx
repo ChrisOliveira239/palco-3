@@ -19,9 +19,14 @@ export function RootLayout() {
         </Link>
         <nav className="flex items-center gap-4">
           {status === 'authenticated' ? (
-            <Button variant="outline" onClick={handleLogout}>
-              Sair
-            </Button>
+            <>
+              <Link to="/perfil" className="text-sm underline">
+                Perfil
+              </Link>
+              <Button variant="outline" onClick={handleLogout}>
+                Sair
+              </Button>
+            </>
           ) : (
             <>
               <Link to="/login" className="text-sm underline">

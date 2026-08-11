@@ -1,3 +1,5 @@
+import type { ArtistProfile } from './artist-profile'
+
 export interface User {
   id: number
   use_name: string
@@ -11,4 +13,5 @@ export interface User {
   use_is_admin: boolean
   use_tipo_conta: 'PESSOA' | 'EMPRESA'
   use_active: boolean
+  artist_profile: ArtistProfile | null
 }

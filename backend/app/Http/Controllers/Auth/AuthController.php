@@ -17,7 +17,7 @@ class AuthController extends Controller
         $user = User::create($request->validated());
 
         return response()->json([
-            'user' => $user,
+            'user' => $user->load('artistProfile'),
             'token' => $user->createToken('auth-token')->plainTextToken,
         ], 201);
     }
@@ -33,7 +33,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'user' => $user,
+            'user' => $user->load('artistProfile'),
             'token' => $user->createToken('auth-token')->plainTextToken,
         ]);
     }
@@ -47,6 +47,6 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json(['user' => $request->user()]);
+        return response()->json(['user' => $request->user()->load('artistProfile')]);
     }
 }
