@@ -5,8 +5,10 @@ namespace Tests\Feature\Events;
 use App\Models\ArtistProfile;
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\EventSession;
 use App\Models\Group;
 use App\Models\User;
+use App\Models\Venue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -27,6 +29,47 @@ class EventTest extends TestCase
 
         $this->assertTrue($ids->contains($published->id));
         $this->assertCount(1, $ids);
+    }
+
+    public function test_guest_filters_events_by_category(): void
+    {
+        $rock = Category::factory()->create();
+        $jazz = Category::factory()->create();
+        $eventoRock = Event::factory()->create(['eve_status' => 'PUBLICADO', 'category_id' => $rock->id]);
+        Event::factory()->create(['eve_status' => 'PUBLICADO', 'category_id' => $jazz->id]);
+
+        $response = $this->getJson("/api/events?category_id={$rock->id}")->assertOk();
+        $ids = collect($response->json('events.data'))->pluck('id');
+
+        $this->assertEquals([$eventoRock->id], $ids->all());
+    }
+
+    public function test_guest_filters_events_by_cidade_via_evento_session(): void
+    {
+        $eventoRecife = Event::factory()->create(['eve_status' => 'PUBLICADO']);
+        EventSession::factory()->enderecoLivre()->create(['event_id' => $eventoRecife->id, 'evs_cidade' => 'Recife']);
+
+        $eventoOlinda = Event::factory()->create(['eve_status' => 'PUBLICADO']);
+        EventSession::factory()->enderecoLivre()->create(['event_id' => $eventoOlinda->id, 'evs_cidade' => 'Olinda']);
+
+        $response = $this->getJson('/api/events?cidade=Recife')->assertOk();
+        $ids = collect($response->json('events.data'))->pluck('id');
+
+        $this->assertEquals([$eventoRecife->id], $ids->all());
+    }
+
+    public function test_guest_filters_events_by_cidade_via_venue(): void
+    {
+        $venue = Venue::factory()->create(['ven_cidade' => 'Salvador']);
+        $eventoSalvador = Event::factory()->create(['eve_status' => 'PUBLICADO']);
+        EventSession::factory()->create(['event_id' => $eventoSalvador->id, 'venue_id' => $venue->id]);
+
+        Event::factory()->create(['eve_status' => 'PUBLICADO']);
+
+        $response = $this->getJson('/api/events?cidade=Salvador')->assertOk();
+        $ids = collect($response->json('events.data'))->pluck('id');
+
+        $this->assertEquals([$eventoSalvador->id], $ids->all());
     }
 
     public function test_guest_can_view_published_event(): void

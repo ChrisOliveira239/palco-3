@@ -7,14 +7,34 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Models\ArtistProfile;
 use App\Models\Event;
 use App\Models\Group;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json([
-            'events' => Event::where('eve_status', 'PUBLICADO')->where('eve_active', true)->paginate(),
-        ]);
+        $query = Event::where('eve_status', 'PUBLICADO')
+            ->where('eve_active', true)
+            ->with(['category', 'sessions' => function ($query) {
+                $query->where('evs_active', true)->orderBy('evs_data_inicio')->with('venue');
+            }]);
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('cidade')) {
+            $cidade = $request->cidade;
+            $query->whereHas('sessions', function ($query) use ($cidade) {
+                $query->where('evs_active', true)
+                    ->where(function ($query) use ($cidade) {
+                        $query->where('evs_cidade', 'like', "%{$cidade}%")
+                            ->orWhereHas('venue', fn ($query) => $query->where('ven_cidade', 'like', "%{$cidade}%"));
+                    });
+            });
+        }
+
+        return response()->json(['events' => $query->paginate()]);
     }
 
     public function show(Event $event)
