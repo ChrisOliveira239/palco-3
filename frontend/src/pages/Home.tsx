@@ -10,15 +10,22 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const TODAS_CATEGORIAS = 'todas'
+const SEM_RAIO = 'nenhum'
+const OPCOES_RAIO_KM = [5, 10, 25, 50, 100]
 
 export function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [categories, setCategories] = useState<Category[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
 
   const categoryId = searchParams.get('category_id') ?? ''
   const cidade = searchParams.get('cidade') ?? ''
+  const lat = searchParams.get('lat') ?? ''
+  const lng = searchParams.get('lng') ?? ''
+  const raioKm = searchParams.get('raio_km') ?? ''
 
   const [cidadeInput, setCidadeInput] = useState(cidade)
 
@@ -32,11 +39,17 @@ export function Home() {
     setLoading(true)
     api
       .get<{ events: { data: Event[] } }>('/events', {
-        params: { category_id: categoryId || undefined, cidade: cidade || undefined },
+        params: {
+          category_id: categoryId || undefined,
+          cidade: cidade || undefined,
+          lat: lat || undefined,
+          lng: lng || undefined,
+          raio_km: raioKm || undefined,
+        },
       })
       .then((response) => setEvents(response.data.events.data))
       .finally(() => setLoading(false))
-  }, [categoryId, cidade])
+  }, [categoryId, cidade, lat, lng, raioKm])
 
   function handleCategoryChange(value: string | null) {
     const next = new URLSearchParams(searchParams)
@@ -51,6 +64,35 @@ export function Home() {
     if (cidadeInput) next.set('cidade', cidadeInput)
     else next.delete('cidade')
     setSearchParams(next)
+  }
+
+  function handleRaioChange(value: string | null) {
+    if (!value || value === SEM_RAIO) {
+      const next = new URLSearchParams(searchParams)
+      next.delete('lat')
+      next.delete('lng')
+      next.delete('raio_km')
+      setSearchParams(next)
+      setLocationError(null)
+      return
+    }
+
+    setLocationError(null)
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocating(false)
+        const next = new URLSearchParams(searchParams)
+        next.set('lat', String(position.coords.latitude))
+        next.set('lng', String(position.coords.longitude))
+        next.set('raio_km', value)
+        setSearchParams(next)
+      },
+      () => {
+        setLocating(false)
+        setLocationError('Não foi possível obter sua localização. Permita o acesso à localização no navegador.')
+      },
+    )
   }
 
   return (
@@ -85,8 +127,28 @@ export function Home() {
           />
         </div>
 
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="raio_km">Raio de distância</Label>
+          <Select value={raioKm || SEM_RAIO} onValueChange={handleRaioChange} disabled={locating}>
+            <SelectTrigger id="raio_km" className="w-48">
+              <SelectValue placeholder="Sem filtro" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={SEM_RAIO}>Sem filtro</SelectItem>
+              {OPCOES_RAIO_KM.map((opcao) => (
+                <SelectItem key={opcao} value={String(opcao)}>
+                  Até {opcao} km
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <Button type="submit">Buscar</Button>
       </form>
+
+      {locating && <p className="text-muted-foreground text-sm">Obtendo sua localização...</p>}
+      {locationError && <p className="text-destructive text-sm">{locationError}</p>}
 
       {loading && <p className="text-muted-foreground text-sm">Carregando eventos...</p>}
       {!loading && events.length === 0 && (

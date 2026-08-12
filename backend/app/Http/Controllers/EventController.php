@@ -34,6 +34,21 @@ class EventController extends Controller
             });
         }
 
+        if ($request->filled('lat') && $request->filled('lng') && $request->filled('raio_km')) {
+            $lat = (float) $request->lat;
+            $lng = (float) $request->lng;
+            $raioKm = (float) $request->raio_km;
+
+            $haversine = '(6371 * acos(cos(radians(?)) * cos(radians(ven_latitude)) * cos(radians(ven_longitude) - radians(?)) + sin(radians(?)) * sin(radians(ven_latitude))))';
+
+            $query->whereHas('sessions', function ($query) use ($haversine, $lat, $lng, $raioKm) {
+                $query->where('evs_active', true)
+                    ->whereHas('venue', function ($query) use ($haversine, $lat, $lng, $raioKm) {
+                        $query->whereRaw("{$haversine} <= CAST(? AS DECIMAL(10,4))", [$lat, $lng, $lat, $raioKm]);
+                    });
+            });
+        }
+
         return response()->json(['events' => $query->paginate()]);
     }
 

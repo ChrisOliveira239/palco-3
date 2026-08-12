@@ -49,6 +49,33 @@ function renderHome(initialEntry = '/') {
   )
 }
 
+const paramsBase = { category_id: undefined, cidade: undefined, lat: undefined, lng: undefined, raio_km: undefined }
+
+const getCurrentPosition = jest.fn()
+
+beforeAll(() => {
+  Object.defineProperty(window.navigator, 'geolocation', {
+    value: { getCurrentPosition },
+    configurable: true,
+  })
+
+  // jsdom não implementa Pointer Events/ResizeObserver/scrollIntoView; o popup do Select (Base UI) depende deles pra abrir.
+  window.HTMLElement.prototype.scrollIntoView = jest.fn()
+  window.HTMLElement.prototype.hasPointerCapture = jest.fn()
+  window.HTMLElement.prototype.releasePointerCapture = jest.fn()
+  window.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+})
+
+// jsdom não implementa `elementFromPoint` de verdade — o pointerEventsCheck padrão do user-event
+// usa isso pra confirmar o alvo do clique, e sempre falha silenciosamente sobre o popup do Select.
+function setupUser() {
+  return userEvent.setup({ pointerEventsCheck: 0 })
+}
+
 describe('Home', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -60,7 +87,7 @@ describe('Home', () => {
 
     expect(await screen.findByText('Show de Rock')).toBeInTheDocument()
     expect(mockedApi.get).toHaveBeenCalledWith('/categories')
-    expect(mockedApi.get).toHaveBeenCalledWith('/events', { params: { category_id: undefined, cidade: undefined } })
+    expect(mockedApi.get).toHaveBeenCalledWith('/events', { params: paramsBase })
   })
 
   it('mostra mensagem quando não há eventos', async () => {
@@ -85,7 +112,7 @@ describe('Home', () => {
 
     await waitFor(() =>
       expect(mockedApi.get).toHaveBeenCalledWith('/events', {
-        params: { category_id: undefined, cidade: 'Recife' },
+        params: { ...paramsBase, cidade: 'Recife' },
       }),
     )
   })
@@ -95,8 +122,65 @@ describe('Home', () => {
 
     await waitFor(() =>
       expect(mockedApi.get).toHaveBeenCalledWith('/events', {
-        params: { category_id: undefined, cidade: 'Olinda' },
+        params: { ...paramsBase, cidade: 'Olinda' },
       }),
     )
+  })
+
+  it('busca eventos por raio de distância usando geolocalização do navegador', async () => {
+    getCurrentPosition.mockImplementation((success: PositionCallback) => {
+      success({ coords: { latitude: -8.05, longitude: -34.9 } } as GeolocationPosition)
+    })
+
+    const user = setupUser()
+    renderHome()
+    await screen.findByText('Show de Rock')
+
+    await user.click(screen.getByLabelText('Raio de distância'))
+    await user.click(await screen.findByRole('option', { name: 'Até 10 km' }))
+
+    await waitFor(() =>
+      expect(mockedApi.get).toHaveBeenCalledWith('/events', {
+        params: { ...paramsBase, lat: '-8.05', lng: '-34.9', raio_km: '10' },
+      }),
+    )
+  })
+
+  it('mostra erro quando geolocalização falha', async () => {
+    getCurrentPosition.mockImplementation((_success: PositionCallback, error: PositionErrorCallback) => {
+      error({ code: 1, message: 'denied' } as GeolocationPositionError)
+    })
+
+    const user = setupUser()
+    renderHome()
+    await screen.findByText('Show de Rock')
+
+    await user.click(screen.getByLabelText('Raio de distância'))
+    await user.click(await screen.findByRole('option', { name: 'Até 10 km' }))
+
+    expect(await screen.findByText(/Não foi possível obter sua localização/)).toBeInTheDocument()
+  })
+
+  it('remover o filtro de raio limpa lat/lng/raio_km da busca', async () => {
+    getCurrentPosition.mockImplementation((success: PositionCallback) => {
+      success({ coords: { latitude: -8.05, longitude: -34.9 } } as GeolocationPosition)
+    })
+
+    const user = setupUser()
+    renderHome()
+    await screen.findByText('Show de Rock')
+
+    await user.click(screen.getByLabelText('Raio de distância'))
+    await user.click(await screen.findByRole('option', { name: 'Até 10 km' }))
+    await waitFor(() =>
+      expect(mockedApi.get).toHaveBeenCalledWith('/events', {
+        params: { ...paramsBase, lat: '-8.05', lng: '-34.9', raio_km: '10' },
+      }),
+    )
+
+    await user.click(screen.getByLabelText('Raio de distância'))
+    await user.click(await screen.findByRole('option', { name: 'Sem filtro' }))
+
+    await waitFor(() => expect(mockedApi.get).toHaveBeenLastCalledWith('/events', { params: paramsBase }))
   })
 })

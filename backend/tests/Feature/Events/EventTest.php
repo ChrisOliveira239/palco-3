@@ -72,6 +72,35 @@ class EventTest extends TestCase
         $this->assertEquals([$eventoSalvador->id], $ids->all());
     }
 
+    public function test_guest_filters_events_by_raio_de_distancia(): void
+    {
+        $venuePerto = Venue::factory()->create(['ven_latitude' => -8.0631, 'ven_longitude' => -34.8711]);
+        $eventoPerto = Event::factory()->create(['eve_status' => 'PUBLICADO']);
+        EventSession::factory()->create(['event_id' => $eventoPerto->id, 'venue_id' => $venuePerto->id]);
+
+        $venueLonge = Venue::factory()->create(['ven_latitude' => -23.5505199, 'ven_longitude' => -46.6333094]);
+        $eventoLonge = Event::factory()->create(['eve_status' => 'PUBLICADO']);
+        EventSession::factory()->create(['event_id' => $eventoLonge->id, 'venue_id' => $venueLonge->id]);
+
+        $response = $this->getJson('/api/events?lat=-8.0578381&lng=-34.8828158&raio_km=10')->assertOk();
+        $ids = collect($response->json('events.data'))->pluck('id');
+
+        $this->assertEquals([$eventoPerto->id], $ids->all());
+    }
+
+    public function test_raio_de_distancia_ignora_sessao_com_endereco_livre(): void
+    {
+        $eventoEnderecoLivre = Event::factory()->create(['eve_status' => 'PUBLICADO']);
+        EventSession::factory()->enderecoLivre()->create([
+            'event_id' => $eventoEnderecoLivre->id,
+            'evs_cidade' => 'Recife',
+        ]);
+
+        $response = $this->getJson('/api/events?lat=-8.0578381&lng=-34.8828158&raio_km=10')->assertOk();
+
+        $this->assertCount(0, $response->json('events.data'));
+    }
+
     public function test_guest_can_view_published_event(): void
     {
         $event = Event::factory()->create(['eve_status' => 'PUBLICADO', 'eve_active' => true]);
